@@ -124,7 +124,7 @@ body.mobile-play .bar button{font-size:14px;padding:5px 12px}
       </div>
       <p class="o-status" id="o-status" role="status">Provjeravam vezu…</p>
     </div>
-    <p class="controls">Jedan igrač: <kbd>←</kbd><kbd>↑</kbd><kbd>→</kbd><kbd>↓</kbd> ili <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd>, a na mobitelu vuci prstom po ekranu. Dva igrača: mama na <kbd>WASD</kbd>, tata na strelicama. <kbd>P</kbd> pauza, <kbd>M</kbd> zvuk. Runda traje 100 sekundi. <span style="opacity:.7">Verzija 13</span></p>
+    <p class="controls">Jedan igrač: <kbd>←</kbd><kbd>↑</kbd><kbd>→</kbd><kbd>↓</kbd> ili <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd>, a na mobitelu vuci prstom po ekranu. Dva igrača: mama na <kbd>WASD</kbd>, tata na strelicama. <kbd>P</kbd> pauza, <kbd>M</kbd> zvuk. Runda traje 100 sekundi. <span style="opacity:.7">Verzija 14</span></p>
 
     <ul class="rules">
       <li><b>+100</b><span>za svako dijete koje doneseš do kolica (možeš nositi dvoje odjednom)</span></li>
@@ -649,7 +649,7 @@ const KEYS={};
 let joy=null;
 
 let VW=W,VH=H,K=1,ZFIT=1,HW=W,HH=H,HK=1;
-function setZoom(f){const nk=clamp(K*f,ZFIT,2.4);try{localStorage.setItem('opTramvaj.zoom',String(nk));}catch(e){}layoutStage();}const CAM={x:0,y:0,snap:true};
+function setZoom(f){const nk=clamp(K*f,ZFIT,2.4);try{localStorage.setItem('opTramvaj.zoom2',String(nk));}catch(e){}layoutStage();}const CAM={x:0,y:0,snap:true};
 function layoutStage(){
   const st=cv.parentElement;if($('play').hidden)return;
   const small=window.innerWidth<760||window.innerHeight<520;
@@ -659,9 +659,9 @@ function layoutStage(){
   const barH=$('bar').offsetHeight||40;
   const ah=Math.max(180,window.innerHeight-barH-(small?22:64))-bw;
   const fit=Math.min(aw/1000,ah/640);
-  let uz=null;try{uz=parseFloat(localStorage.getItem('opTramvaj.zoom'))||null;}catch(e){}
+  let uz=null;try{uz=parseFloat(localStorage.getItem('opTramvaj.zoom2'))||null;}catch(e){}
   ZFIT=fit;
-  K=clamp(uz||(small?Math.max(fit,1.15):fit),fit,2.4);
+  K=clamp(uz||(small?Math.max(fit,.8):fit),fit,2.4);
   const cw=Math.min(Math.floor(aw),Math.floor(1000*K)),ch=Math.min(Math.floor(ah),Math.floor(640*K));
   VW=cw/K;VH=ch/K;
   st.classList.add('sized');st.style.width=cw+'px';st.style.height=ch+'px';
