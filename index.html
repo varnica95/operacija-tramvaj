@@ -145,7 +145,7 @@ body.mobile-play .bar button{font-size:14px;padding:5px 12px}
       </div>
       <p class="o-status" id="o-status" role="status">Provjeravam vezu…</p>
     </div>
-    <p class="controls">Jedan igrač: <kbd>←</kbd><kbd>↑</kbd><kbd>→</kbd><kbd>↓</kbd> ili <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd>, a na mobitelu vuci prstom po ekranu. Dva igrača: mama na <kbd>WASD</kbd>, tata na strelicama. <kbd>P</kbd> pauza, <kbd>M</kbd> zvuk. Runda traje 100 sekundi. <span style="opacity:.7">Verzija 19</span></p>
+    <p class="controls">Jedan igrač: <kbd>←</kbd><kbd>↑</kbd><kbd>→</kbd><kbd>↓</kbd> ili <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd>, a na mobitelu vuci prstom po ekranu. Dva igrača: mama na <kbd>WASD</kbd>, tata na strelicama. <kbd>P</kbd> pauza, <kbd>M</kbd> zvuk. Runda traje 100 sekundi. <span style="opacity:.7">Verzija 20</span></p>
 
     <ul class="rules" data-for-lv="1">
       <li><b>+100</b><span>za svako dijete koje doneseš do kolica (možeš nositi dvoje odjednom)</span></li>
@@ -183,7 +183,7 @@ body.mobile-play .bar button{font-size:14px;padding:5px 12px}
       <div class="who"><canvas data-p="seka" width="340" height="220"></canvas><h3>Teta Seka</h3><p>Plavuša i velika vjernica. Negativka koja krade djecu i nosi ih u sektu Neos. Dok nosi dijete prema vratima, uhvati je i spasi ga.</p></div>
       <div class="who"><canvas data-p="katarina" width="340" height="220"></canvas><h3>Baka Katarina</h3><p>Radi u pošti. Dok djeca rade nered, ona sprema crkvu, skuplja molitvenike i pali svijeće. Usput donese i paket.</p></div>
       <div class="who"><canvas data-p="zak" width="340" height="220"></canvas><h3>Žak Houdek</h3><p>Dolazi kad igra Josip i lijepi se za njega sa sendvičima. Dok je Žak blizu, Josip je puno sporiji.</p></div>
-      <div class="who"><canvas data-p="pleme" width="340" height="220"></canvas><h3>Pleme Varnica</h3><p>Ista obiteljska grupa. Kad stigne poruka, moraš je pročitati, pa si nakratko upola sporiji.</p></div>
+      <div class="who"><canvas data-p="novagen" width="340" height="220"></canvas><h3>Nova generacija</h3><p>Grupa u kojoj si šalju slike, videe i teorije zavjere. Kad stigne poruka, moraš je pogledati, pa si nakratko upola sporiji.</p></div>
     </div>
   </section>
 
@@ -558,11 +558,11 @@ function drawMarin(c,k){
   c.strokeStyle='#f6c9a8';c.lineWidth=2;c.beginPath();c.arc(x,hy+9,4,.2,Math.PI-.2);c.stroke();
 }
 
-function drawChatIcon(c,x,y){
+function drawChatIcon(c,x,y,ng){
   c.fillStyle='#dcf8c6';c.strokeStyle=INK;c.lineWidth=2.5;rr(c,x-50,y-80,100,62,14);c.fill();c.stroke();
   c.beginPath();c.moveTo(x-34,y-19);c.lineTo(x-42,y-4);c.lineTo(x-22,y-19);c.closePath();c.fill();c.stroke();
-  c.fillStyle='#128c4a';c.font='900 12px Nunito, sans-serif';c.textAlign='center';c.fillText('Pleme Varnica',x,y-60);
-  c.fillStyle=INK;c.font='800 11px Nunito, sans-serif';c.fillText('Baka: Jesu jeli?',x,y-44);c.fillText('Dida: ok',x,y-29);
+  c.fillStyle='#128c4a';c.font='900 12px Nunito, sans-serif';c.textAlign='center';c.fillText(ng?'Nova generacija':'Pleme Varnica',x,y-60);
+  c.fillStyle=INK;c.font='800 11px Nunito, sans-serif';if(ng){c.fillText('[video] 🕊️📡',x,y-44);c.fillText('Golubovi = dronovi?!',x,y-29);}else{c.fillText('Baka: Jesu jeli?',x,y-44);c.fillText('Dida: ok',x,y-29);}
   ell(c,x+42,y-80,10,10,'#e2445c',true);c.fillStyle='#fff';c.font='900 11px Nunito, sans-serif';c.fillText('99',x+42,y-76);
 }
 
@@ -573,8 +573,8 @@ function drawChat(c){
   c.font='800 14px Nunito, "Segoe UI", sans-serif';
   const txt=`${ch.from}: ${ch.msg}`;
   c.fillStyle='#dcf8c6';c.strokeStyle=INK;c.lineWidth=2;rr(c,x,y,w,52,12);c.fill();c.stroke();
-  ell(c,x+24,y+26,15,15,'#128c4a',true);c.fillStyle='#fff';c.font='900 12px Nunito, sans-serif';c.textAlign='center';c.fillText('PV',x+24,y+30);
-  c.textAlign='left';c.fillStyle='#128c4a';c.font='900 13px Nunito, sans-serif';c.fillText(CFG.grupa,x+46,y+20);
+  ell(c,x+24,y+26,15,15,'#128c4a',true);c.fillStyle='#fff';c.font='900 12px Nunito, sans-serif';c.textAlign='center';c.fillText(LV===2?'NG':'PV',x+24,y+30);
+  c.textAlign='left';c.fillStyle='#128c4a';c.font='900 13px Nunito, sans-serif';c.fillText(LV===2?'Nova generacija':CFG.grupa,x+46,y+20);
   c.fillStyle=INK;c.font='800 14px Nunito, "Segoe UI", sans-serif';
   let t=txt;while(c.measureText(t).width>w-56&&t.length>4)t=t.slice(0,-2);if(t!==txt)t=t.slice(0,-1)+'…';
   c.fillText(t,x+46,y+40);
@@ -845,7 +845,7 @@ const L={
 };
 
 const L2={
-  catchmama:b=>['Vidim te kroz klupu!','Rendgen ne laže!',`Ajmo u kolica, ${gx(b,'maleni','malena')}!`,'Tiho, misa je!','Ovo ide u Pleme Varnica.'],
+  catchmama:b=>['Vidim te kroz klupu!','Rendgen ne laže!',`Ajmo u kolica, ${gx(b,'maleni','malena')}!`,'Tiho, misa je!','Ovo ide u Novu generaciju.'],
   catchtata:b=>['Smiješak! Uhvaćen'+gx(b,'','a')+'!','Tata te ima!','Savršen kadar!',`Ajde, ${b.name}, idemo!`,'Ovo ću fotkati za album.'],
   dropmama:['Tako. Sjedi i moli.','Vlažne maramice i idemo dalje.','Josipe, broji ih!','Imam još bodića s Vinteda za presvlačenje.'],
   droptata:['Savršen kadar: djeca u kolicima.','Klik! Za album.','Iva, vidi, uspio sam!','Bolje od sendviča sa Žakom.'],
@@ -867,10 +867,12 @@ const L2={
 };
 const Lk=k=>(LV===2&&L2[k]!==undefined)?L2[k]:L[k];
 const CHAT2=[
-  ['Baka Katarina','Tko je ostavio molitvenike po podu?'],['Baka Katarina','Paket je u pošti, dođite po njega 📦'],
-  ['Iva','Kupila sam još 3 bodića na Vintedu 🙈'],['Josip','Stigao novi objektiv 📷'],['Teta Seka','Molim za vas 🙏'],
-  ['Teta Seka','Večeras kateheza, djeca dobrodošla!'],['Josip','Žak me opet zove na sendviče...'],['Iva','Vidjela sam rendgenom tko je bio nemiran 👀'],
-  ['Baka Suzana','Bakino sunce! ☀️'],['Dida Ivica','Radim čobanac. Faca od čobanca. 🔥'],['Strika Marin','Ja sam programer.']
+  ['Josip','[slika: golub na krovu crkve, 400 mm objektiv] 📷'],['Iva','[video: Rafaela kiše 🥹]'],
+  ['Teta Seka','Jeste vidjeli? Golubovi zapravo nisu pravi. To su dronovi 🕊️📡'],['Baka Katarina','U pošti kažu da paketi s Vinteda imaju čipove 📦👀'],
+  ['Josip','[video: Žak jede 5 sendviča zaredom] 🥪'],['Teta Seka','Teorija: bageri u gradu traže zlato ispod crkve! ⛏️'],
+  ['Iva','[slika: rendgen. Ovo je sigurno vanzemaljac 👽]'],['Josip','Chemtrailsi iznad crkve, slikao sam ih! ✈️'],
+  ['Baka Katarina','[video: golubovi marširaju u formaciji] 🕊️🕊️🕊️'],['Teta Seka','Mimi ne krade mobitele. Ona nas štiti od 5G 📵'],
+  ['Iva','Netko na Vintedu prodaje NAŠA kolica?! 🤔'],['Josip','Žak je robot. Imam dokaz na fotki. 🤖']
 ];
 const CHAT=[
   ['Baka Suzana','Dobro jutro svima!! 🌹🌹🌹'],['Baka Suzana','Jesu djeca jela?'],['Baka Suzana','Šaljem recept za sarmu'],
@@ -1244,7 +1246,7 @@ function updateBaby(b,dt){
         }
       }
     }
-    if(b.phone&&Math.random()<.004&&!(b.bubble&&b.bubble.t>0))setBubble(b,pick(['Halo? Dida?','Selfie!','Bip bip bip!','Pleme Varnica, halo!']),1.4);
+    if(b.phone&&Math.random()<.004&&!(b.bubble&&b.bubble.t>0))setBubble(b,pick(['Halo? Dida?','Selfie!','Bip bip bip!',LV===2?'Nova generacija, halo!':'Pleme Varnica, halo!']),1.4);
   }
   // Mihi i bager
   if(b.idx===2&&G.bager&&dist(b,G.bager)<90){
@@ -1379,7 +1381,7 @@ function update(dt){
   const CH=G.chat;CH.cd-=dt;if(CH.show)CH.show.t-=dt;
   if(CH.cd<=0){
     const [from,msg]=pick(LV===2?CHAT2:CHAT);CH.show={from,msg,t:4.5};CH.cd=rand(14,20);SFX.ping();
-    const pl=pick(G.players);pl.reading=2.5;setBubble(pl,pick(LV===2?(pl.kind==='mama'?['Samo da vidim Vinted...','Čekaj, baka piše...','Opet Pleme Varnica...']:['Žak opet piše za sendviče...','Samo da vidim tko piše...']):(pl.kind==='mama'?['Samo da vidim grupu...','Čekaj, baka piše...','Opet Pleme Varnica...']:['Samo da vidim tko piše...','Dida opet šalje hranu...','Je li to netko našao moj Velo?'])),2);
+    const pl=pick(G.players);pl.reading=2.5;setBubble(pl,pick(LV===2?(pl.kind==='mama'?['Samo da vidim Vinted...','Čekaj, baka piše...','Opet Nova generacija...']:['Žak opet piše za sendviče...','Samo da vidim tko piše...']):(pl.kind==='mama'?['Samo da vidim grupu...','Čekaj, baka piše...','Opet Pleme Varnica...']:['Samo da vidim tko piše...','Dida opet šalje hranu...','Je li to netko našao moj Velo?'])),2);
   }
 
   for(const p of G.pigeons){
@@ -1799,11 +1801,11 @@ function renderEnd(S,isHost){
     <h1 style="font-size:clamp(34px,6vw,56px)">${title}</h1>
     <p class="quote"><em>Mama ${LL.mama}:</em> „${pick(quotes)}”<br><em style="color:#1b4f9c">Tata ${LL.tata}:</em> „${pick(tquotes)}”</p>
     <div class="result">${fam}${cards}</div>
-    <div class="wa"><div class="wa-h">${CFG.grupa}</div>
+    <div class="wa"><div class="wa-h">${lv===2?'Nova generacija':CFG.grupa}</div>
       ${lv===2?`<p><b>Iva:</b> ${S.no?'Ne pitajte. Živci su pukli usred mise.':`Preživjeli smo misu! ${score.toLocaleString('hr-HR')} bodova.`} Ugašeno svijeća: ${babies.reduce((a,b)=>a+(b.stats.candles||0),0)}. Mimi je ukrala ${babies.find(b=>b.idx===3)?.stats.phones||0} mobitela.</p>
-      <p><b>Baka Katarina:</b> ${pick(['Ja sam sve pospremila. Opet.','Molitvenici su natrag na mjestu.','Paketi su u pošti, dođite po njih!'])}</p>
-      <p><b>Teta Seka:</b> ${pick(['Molim za vas 🙏','Večeras kateheza, djeca dobrodošla! 🙏','Aleluja! ✝️'])}</p>
-      <p><b>Josip:</b> ${pick(['Imam 400 fotki. Sve mutne.','Žak, ne. Ne idem na sendviče.','Novi objektiv radi savršeno 📷'])}</p></div>`:`<p><b>Lucija:</b> ${S.no?'Ne pitajte. Živci su pukli.':`Preživjeli smo! ${score.toLocaleString('hr-HR')} bodova.`} Toma je pipnuo ${babies[0].stats.trams} tramvaja, Elena je pojela ${babies[1].stats.choc} ${chocWord(babies[1].stats.choc)}.</p>
+      <p><b>Baka Katarina:</b> ${pick(['Ja sam sve pospremila. Opet.','[video: golub u crkvi, 3 minute]','Paketi su u pošti. Možda s čipom 👀'])}</p>
+      <p><b>Teta Seka:</b> ${pick(['Molim za vas 🙏','Ovo nije bila slučajnost. Sve je povezano. 🕊️📡','Aleluja! A golubovi su i dalje dronovi.'])}</p>
+      <p><b>Josip:</b> ${pick(['[400 slika. Sve mutne.] 📷','[video: Mihi juri bager, 4K]','Žak je robot. Dokaz u prilogu. 🤖'])}</p></div>`:`<p><b>Lucija:</b> ${S.no?'Ne pitajte. Živci su pukli.':`Preživjeli smo! ${score.toLocaleString('hr-HR')} bodova.`} Toma je pipnuo ${babies[0].stats.trams} tramvaja, Elena je pojela ${babies[1].stats.choc} ${chocWord(babies[1].stats.choc)}.</p>
       <p><b>Baka Suzana:</b> ${pick(['Bravo, bakino sunce!! ☀️🌹','Jesu popili sirup? I jesu jeli nešto osim čokolade?','Ajme, kako su slatki!! ❤️'])}</p>
       <p><b>Dida Ivica:</b> ${pick(['Bravo! Dođite sutra, radim sarmu.','A sad svi na palačinke!','Za ovo slijedi čobanac. Faca od čobanca!'])}</p>
       <p><b>Strika Marin:</b> Ja sam programer. Ja sam ovo napravio. 😎</p>
@@ -2089,6 +2091,7 @@ function portraits(){
     if(p==='dida')draw(1.05,(x,y)=>drawDida(c,{x,y:y-4,cd:1}));
     if(p==='marin')draw(.86,(x,y)=>drawMarin(c,{x,y,wave:1}));
     if(p==='pleme')draw(1.15,(x,y)=>drawChatIcon(c,x,y));
+    if(p==='novagen')draw(1.15,(x,y)=>drawChatIcon(c,x,y,true));
     if(p==='rafaela')draw(1.5,(x,y)=>drawCrawl(c,{...BABIES[4],dir:1,phase:0},x,y-6));
     if(p==='iva')draw(.92,(x,y)=>drawMama(c,{x,y,face:1,bubble:{t:1},carried:[],look:LEVELS[2].mamaLook}));
     if(p==='josip')draw(.86,(x,y)=>drawTata(c,{x,y,look:LEVELS[2].tataLook}));
