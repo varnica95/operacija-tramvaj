@@ -145,7 +145,7 @@ body.mobile-play .bar button{font-size:14px;padding:5px 12px}
       </div>
       <p class="o-status" id="o-status" role="status">Provjeravam vezu…</p>
     </div>
-    <p class="controls">Jedan igrač: <kbd>←</kbd><kbd>↑</kbd><kbd>→</kbd><kbd>↓</kbd> ili <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd>, a na mobitelu vuci prstom po ekranu. Dva igrača: mama na <kbd>WASD</kbd>, tata na strelicama. <kbd>P</kbd> pauza, <kbd>M</kbd> zvuk. Runda traje 100 sekundi. <span style="opacity:.7">Verzija 26</span></p>
+    <p class="controls">Jedan igrač: <kbd>←</kbd><kbd>↑</kbd><kbd>→</kbd><kbd>↓</kbd> ili <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd>, a na mobitelu vuci prstom po ekranu. Dva igrača: mama na <kbd>WASD</kbd>, tata na strelicama. <kbd>P</kbd> pauza, <kbd>M</kbd> zvuk. Runda traje 100 sekundi. <span style="opacity:.7">Verzija 27</span></p>
 
     <ul class="rules" data-for-lv="1">
       <li><b>+100</b><span>za svako dijete koje doneseš do kolica (možeš nositi dvoje odjednom)</span></li>
@@ -160,6 +160,7 @@ body.mobile-play .bar button{font-size:14px;padding:5px 12px}
       <li><b>+50</b><span>kad dodirneš tetu Seku dok nosi dijete i spasiš ga od Neosa</span></li>
       <li><b class="bad">Molitva</b><span>dok traje, živci padaju duplo brže</span></li>
       <li><b>Paketi</b><span>baka Katarina donosi pakete iz pošte: Vinted paket Ivi daje brzinu, a novi objektiv Josipu bljesak koji zaslijepi djecu</span></li>
+      <li><b>AMEN</b><span>kad svećenik vikne „TIJELO KRISTOVO!”, svi stanu na dvije sekunde</span></li>
       <li><b>Rendgen</b><span>Iva rendgenom vidi koje dijete teta Seka želi ugrabiti.</span></li>
     </ul>
 
@@ -182,6 +183,7 @@ body.mobile-play .bar button{font-size:14px;padding:5px 12px}
       <div class="who"><canvas data-p="rafaela" width="340" height="220"></canvas><h3>Rafaela</h3><p>Stara je tek par dana, pa samo puže. Spora je i ne bježi, ali teta Seka nju najviše želi odvesti.</p></div>
       <div class="who"><canvas data-p="seka" width="340" height="220"></canvas><h3>Teta Seka</h3><p>Plavuša, velika vjernica i teoretičarka zavjere: golubovi su dronovi, paketi imaju čipove, a bager prisluškuje. Svima govori „srce malo”, „srculence” i „srce tetino”. Negativka koja krade djecu i nosi ih u sektu Neos. Dok nosi dijete prema vratima, uhvati je i spasi ga.</p></div>
       <div class="who"><canvas data-p="katarina" width="340" height="220"></canvas><h3>Baka Katarina</h3><p>Radi u pošti, a brižna je i pomaže u kućanskim poslovima: sprema, mete, pali svijeće i donosi pakete. Kad nema što pospremiti, sama odnese dijete u kolica (+50).</p></div>
+      <div class="who"><canvas data-p="pop" width="340" height="220"></canvas><h3>Svećenik</h3><p>Stoji za oltarom. Kad mu se prohtije, vikne „TIJELO KRISTOVO!” i svi moraju stati na dvije sekunde i reći „AMEN”: djeca, mama, tata, pa čak i teta Seka.</p></div>
       <div class="who"><canvas data-p="zak" width="340" height="220"></canvas><h3>Žak Houdek</h3><p>Okrugao i uvijek sa sendvičem u ruci. Dolazi kad igra Josip i lijepi se za njega sa sendvičima. Dok je Žak blizu, Josip je puno sporiji.</p></div>
       <div class="who"><canvas data-p="novagen" width="340" height="220"></canvas><h3>Nedjeljom u 2</h3><p>Grupa u kojoj si šalju slike, videe i teorije zavjere. Kad stigne poruka, moraš je pogledati, pa si nakratko upola sporiji.</p></div>
     </div>
@@ -227,7 +229,7 @@ const LEVELS={
     pig:{x0:310,x1:480,y0:450,y1:625,cx:200,cy:470},bagerY:197,npcY:470,start:{mama:[430,575],tata:[570,575]},
     kidStart:sl=>[380+sl*80,500],mamaLook:null,tataLook:null},
   2:{key:'crkva',title:'Crkva',led:'Crkva · nedjeljna misa',mama:'Iva',tata:'Josip',mamaV:'Iva',tataV:'Josipe',kids:[2,3,4],
-    stroller:{x:500,y:478},obst:[{x:410,y:96,w:180,h:62}],pews:[],ymin:168,
+    stroller:{x:500,y:478},obst:[{x:410,y:96,w:180,h:62},{x:605,y:96,w:40,h:66}],pews:[],ymin:168,
     pig:{x0:620,x1:960,y0:540,y1:595,cx:500,cy:520},bagerY:628,npcY:560,start:{mama:[455,440],tata:[545,440]},
     kidStart:sl=>[450+sl*50,270],
     mamaLook:{dress:'#2a9d8f',hair:'#6b3d1e',glasses:true,shoes:'#1d5c55'},
@@ -753,6 +755,22 @@ function drawParcel(c,pc){
   label(c,pc.x,pc.y,pc.kind==='vinted'?'VINTED PAKET':'NOVI OBJEKTIV',pc.kind==='vinted'?'rgba(42,157,143,.95)':'rgba(61,64,91,.95)');
 }
 
+function drawPriest(c,P){
+  const x=P.x||625,y=P.y||160,up=G&&G.amen>0;
+  ell(c,x,y+1,20,6,'rgba(0,0,0,.2)');
+  c.fillStyle='#fbfbf5';c.strokeStyle=INK;c.lineWidth=2;c.beginPath();c.moveTo(x-14,y-80);c.lineTo(x+14,y-80);c.lineTo(x+22,y);c.lineTo(x-22,y);c.closePath();c.fill();c.stroke();
+  c.fillStyle='#2e8b57';c.fillRect(x-9,y-80,6,70);c.fillRect(x+3,y-80,6,70);
+  c.fillStyle='#d9a400';c.fillRect(x-2,y-62,4,12);c.fillRect(x-6,y-58,12,4);
+  if(up){line(c,x-12,y-74,x-20,y-104,INK,7);line(c,x+12,y-74,x+20,y-104,INK,7);line(c,x-12,y-74,x-20,y-104,'#fbfbf5',4);line(c,x+12,y-74,x+20,y-104,'#fbfbf5',4);
+    c.fillStyle='rgba(255,216,74,.35)';c.beginPath();c.arc(x,y-112,16+Math.sin(NOW*8)*3,0,Math.PI*2);c.fill();ell(c,x,y-112,8,8,'#fffdf0',true);}
+  else{line(c,x-12,y-74,x-16,y-48,INK,7);line(c,x+12,y-74,x+16,y-48,INK,7);line(c,x-12,y-74,x-16,y-48,'#fbfbf5',4);line(c,x+12,y-74,x+16,y-48,'#fbfbf5',4);}
+  const hy=y-94;
+  ell(c,x,hy,12,13,SKIN,true);
+  c.fillStyle='#5a3320';c.beginPath();c.arc(x,hy-2,12.5,Math.PI*1.1,Math.PI*1.9);c.closePath();c.fill();
+  ell(c,x-4,hy+1,1.8,2.2,INK);ell(c,x+4,hy+1,1.8,2.2,INK);
+  if(up)ell(c,x,hy+7,3.5,3,'#7a1f2e',true);else{c.strokeStyle=INK;c.lineWidth=1.8;c.beginPath();c.arc(x,hy+5,3.5,.3,Math.PI-.3);c.stroke();}
+}
+
 /* ====== BACKGROUND ====== */
 function drawBackground(c){
   let g=c.createLinearGradient(0,0,0,72);g.addColorStop(0,'#8ccbee');g.addColorStop(1,'#d9f0fb');c.fillStyle=g;c.fillRect(0,0,W,72);
@@ -957,7 +975,7 @@ function newGame(mode){
     seka:{state:'away',timer:rand(14,18),x:500,y:660,carry:null,bubble:null,moving:false,huntT:0,talkCd:2},
     kata:{state:'away',timer:rand(6,9),x:500,y:660,bubble:null,moving:false,stay:0,cleaning:false,talkCd:3,helpCd:4,carry:null},
     zak:{state:'away',timer:rand(18,24),x:500,y:660,bubble:null,moving:false,follow:0,talkCd:1},
-    messes:[],parcel:null,candles:[0,0,0,0,0],prayer:{cd:rand(14,18),t:0},flash:0,
+    messes:[],parcel:null,candles:[0,0,0,0,0],prayer:{cd:rand(14,18),t:0},flash:0,priest:{cd:rand(9,14),bubble:null},amen:0,
     pigeons:Array.from({length:LV===1?5:7},()=>({x:rand(LVL().pig.x0,LVL().pig.x1),y:rand(LVL().pig.y0,LVL().pig.y1),dir:pick([-1,1]),z:0,vx:0,vy:0,cd:rand(0,2)})),
     spawn:{tr:[1.5,3.5],item:.5,veg:rand(14,18),velo:rand(8,12),bag:rand(10,15)},bager:null,
     paused:false,over:false,shake:0,lastTick:11,stats:{catches:0,taken:0,dropped:0},nervesOut:false};
@@ -1328,6 +1346,23 @@ function update(dt){
   if(G.time<=10&&Math.ceil(G.time)<G.lastTick){G.lastTick=Math.ceil(G.time);SFX.tick();}
   if(G.time<=0){G.time=0;endGame();return;}
   G.shake=Math.max(0,G.shake-dt*30);G.hack=Math.max(0,G.hack-dt);
+  if(LV===2){
+    const P=G.priest;if(P.bubble)P.bubble.t-=dt;
+    const amenEnts=()=>[...G.players,...G.babies.filter(b=>b.state!=='neos'&&b.state!=='seka'),G.npc&&G.npc.state!=='away'?G.npc.p:null,
+      G.seka.state!=='away'?G.seka:null,G.kata.state!=='away'?G.kata:null,G.zak.state!=='away'?G.zak:null].filter(Boolean);
+    if(G.amen>0){
+      G.amen-=dt;
+      for(const e of amenEnts()){if(e.bubble)e.bubble.t-=dt;e.moving=false;}
+      for(const pp of G.pops){pp.t-=dt;pp.y-=40*dt;}G.pops=G.pops.filter(p=>p.t>0);
+      return;
+    }
+    P.cd-=dt;
+    if(P.cd<=0){
+      P.cd=rand(12,22);G.amen=2;setBubble(P,'TIJELO KRISTOVO!',2.4);SFX.ding();
+      for(const e of amenEnts())setBubble(e,'AMEN',2);
+      return;
+    }
+  }
 
   if(LV===1&&G.hack<=0)for(let i=0;i<2;i++){
     G.spawn.tr[i]-=dt;
@@ -1586,6 +1621,7 @@ function render(){
     for(const r of PEWS)list.push({y:r.y+r.h,d:()=>drawPew(c,r)});
     for(const m of G.messes)list.push({y:m.y-1,d:()=>drawMess(c,m)});
     if(G.parcel){const pc=G.parcel;list.push({y:pc.y,d:()=>drawParcel(c,pc)});}
+    list.push({y:160,d:()=>{drawPriest(c,{x:625,y:160});label(c,625,160,'Svećenik','rgba(46,139,87,.95)');}});
     const S=G.seka;
     if(xr&&S.state==='hunt'&&S.target&&S.target.state==='free'){const tb=S.target;list.push({y:tb.y-1,d:()=>{c.fillStyle='rgba(120,255,160,.25)';c.beginPath();c.ellipse(tb.x,tb.y-24,28,36,0,0,Math.PI*2);c.fill();c.strokeStyle='rgba(60,200,110,.9)';c.lineWidth=2;c.setLineDash([4,3]);c.beginPath();c.ellipse(tb.x,tb.y-24,28,36,0,0,Math.PI*2);c.stroke();c.setLineDash([]);label(c,tb.x,tb.y+16,'RENDGEN: Seka ide po '+tb.name+'!','rgba(42,157,143,.95)');}});}
     if(S.state!=='away')list.push({y:S.y,d:()=>{drawSeka(c,S);label(c,S.x,S.y,'Teta Seka','rgba(75,90,168,.95)');}});
@@ -1636,6 +1672,7 @@ function render(){
   for(const p of G.players)bb(p,p.x,p.y-(p.kind==='mama'?108:128),p.kind==='mama'?'#ffd6dd':'#d6ecff');
   if(G.npc&&G.npc.state!=='away'){const p=G.npc.p;bb(p,p.x,p.y-(p.kind==='mama'?108:128),'#eef1f6');}
   if(LV===1)bb(G.friend,G.friend.x,G.friend.y-(G.friend.holding?178:100),'#fff6e3');
+  if(LV===2&&G.priest)bb(G.priest,730,66,'#fffbe6');
   if(LV===2){if(G.seka.state!=='away')bb(G.seka,G.seka.x,G.seka.y-140,'#e6e9ff');if(G.kata.state!=='away')bb(G.kata,G.kata.x,G.kata.y-108,'#fff3c4');if(G.zak.state!=='away')bb(G.zak,G.zak.x,G.zak.y-124,'#ffe0d6');}
   if(G.baka.state!=='away')bb(G.baka,G.baka.x,G.baka.y-110,'#ffe3f0');
   if(G.marin.state!=='away')bb(G.marin,G.marin.x,G.marin.y-130,'#e3fff2');
@@ -1730,6 +1767,7 @@ function drawHUD(c){
     if(p.super>0)banners.push([`SUPER ${p.kind==='mama'?'MAMA':'TATA'}! ${Math.ceil(p.super)} s`,'#ff8a3d']);
     if(p.velo>0)banners.push([`TURBO TATA (VELO) ${Math.ceil(p.velo)} s`,'#1b4f9c']);
   }
+  if(LV===2&&G.amen>0)banners.push(['TIJELO KRISTOVO · svi kažu AMEN!','#d9a400']);
   if(LV===2&&G.prayer&&G.prayer.t>0)banners.push([`MOLITVA · TIŠINA! Živci ×2 · ${Math.ceil(G.prayer.t)} s`,'#7a4a22']);
   if(LV===2&&G.seka&&G.seka.state==='carry')banners.push(['Teta Seka nosi dijete u Neos! Uhvati je!','#4b5aa8']);
   if(G.hack>0)banners.push([`ZET HAKIRAN · nema tramvaja ${Math.ceil(G.hack)} s`,'#1f7756']);
@@ -2046,7 +2084,7 @@ function snap(){
       k:[G.kata.state==='away'?0:1,r(G.kata.x),r(G.kata.y),G.kata.moving?1:0,G.kata.cleaning?1:0,bub(G.kata),G.kata.carry?G.kata.carry.slot:-1],
       z:[G.zak.state==='away'?0:1,r(G.zak.x),r(G.zak.y),G.zak.moving?1:0,bub(G.zak)],
       m:G.messes.slice(0,10).map(m=>[r(m.x),r(m.y)]),pc:G.parcel?[r(G.parcel.x),r(G.parcel.y),G.parcel.kind==='vinted'?1:0,f1(G.parcel.t)]:0,
-      c:G.candles.map(x=>x>0?1:0),pr:f1(G.prayer.t),fl:f1(G.flash)}:0,
+      c:G.candles.map(x=>x>0?1:0),pr:f1(G.prayer.t),fl:f1(G.flash),am:f1(G.amen),pb:bub(G.priest)}:0,
     SX:NET.sfxLog.slice(),
     E:G.over&&G.endS?G.endS:0
   };
@@ -2064,7 +2102,7 @@ function viewG(gid){
   return {remote:true,online:true,localIdx:1,mode:'both',gid,t:0,time:CFG.time,nerves:100,score:0,
     players:[{...makeParent('mama','none')},{...makeParent('tata','local')}],
     seka:{state:'away',x:500,y:660,carry:null,bubble:null},kata:{state:'away',x:500,y:660,bubble:null},zak:{state:'away',x:500,y:660,bubble:null},
-    messes:[],parcel:null,candles:[0,0,0,0,0],prayer:{t:0},flash:0,
+    messes:[],parcel:null,candles:[0,0,0,0,0],prayer:{t:0},flash:0,priest:{bubble:null},amen:0,
     npc:null,babies:LVL().kids.map((k,sl)=>makeBaby(k,sl)),trams:[],items:[],pops:[],vegeta:null,velo:null,hack:0,
     friend:{x:FRIEND.x,y:FRIEND.y,holding:null,bubble:null,wave:0},
     baka:{state:'away',x:-40,y:600,moving:false,bubble:null,wave:0},
@@ -2099,7 +2137,7 @@ function applySnap(s){
     const K=G.kata;K.state=X.k[0]?'clean':'away';setPos(K,X.k[1],X.k[2],first);K.moving=!!X.k[3];K.cleaning=!!X.k[4];K.bubble=unb(X.k[5]);K.carry=X.k[6]>=0?G.babies[X.k[6]]:null;
     const Z=G.zak;Z.state=X.z[0]?'follow':'away';setPos(Z,X.z[1],X.z[2],first);Z.moving=!!X.z[3];Z.bubble=unb(X.z[4]);
     G.messes=X.m.map((a,i)=>({x:a[0],y:a[1],r:((i*37)%10-5)/10}));G.parcel=X.pc?{x:X.pc[0],y:X.pc[1],kind:X.pc[2]?'vinted':'foto',t:X.pc[3]}:null;
-    G.candles=X.c.map(v=>v?1:0);G.prayer={t:X.pr};G.flash=X.fl;}
+    G.candles=X.c.map(v=>v?1:0);G.prayer={t:X.pr};G.flash=X.fl;G.amen=X.am||0;G.priest={bubble:unb(X.pb)};}
   if(NET.lastSfx===null)NET.lastSfx=s.SX.length?s.SX[s.SX.length-1][0]:0;
   for(const [id,k] of s.SX){if(id>NET.lastSfx){NET.lastSfx=id;try{SFX[k]&&SFX[k]();}catch(e){}}}
   if(s.o&&s.E&&NET.endGid!==s.g){NET.endGid=s.g;G.over=true;renderEnd(s.E,false);}
@@ -2146,6 +2184,7 @@ function portraits(){
     if(p==='marin')draw(.86,(x,y)=>drawMarin(c,{x,y,wave:1}));
     if(p==='pleme')draw(1.15,(x,y)=>drawChatIcon(c,x,y));
     if(p==='novagen')draw(1.15,(x,y)=>drawChatIcon(c,x,y,true));
+    if(p==='pop')draw(.9,(x,y)=>{const g0=G;G={amen:1};drawPriest(c,{x,y});G=g0;});
     if(p==='rafaela')draw(1.5,(x,y)=>drawCrawl(c,{...BABIES[4],dir:1,phase:0},x,y-6));
     if(p==='iva')draw(.92,(x,y)=>drawMama(c,{x,y,face:1,bubble:{t:1},carried:[],look:LEVELS[2].mamaLook}));
     if(p==='josip')draw(.86,(x,y)=>drawTata(c,{x,y,look:LEVELS[2].tataLook}));
