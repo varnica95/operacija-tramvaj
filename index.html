@@ -122,7 +122,7 @@ body.mobile-play .bar button{font-size:14px;padding:5px 12px}
       <button class="lvl" data-lv="2" aria-pressed="false"><span class="lvl-n">Level 2</span><span class="lvl-t">Crkva</span><span class="lvl-s">Iva i Josip · Mihi, Mimi i Rafaela</span></button>
     </div>
     <p class="lede" data-for-lv="1">Toma i Elena imaju tri životna cilja: pipnuti što više tramvaja, završiti u naručju prijatelja beskućnika s Autobusnog kolodvora i pojesti što više čokolade. Ti si mama Lucija ili tata Ivan. Hvataj ih i vraćaj u kolica prije nego što ti puknu živci.</p>
-    <p class="lede" data-for-lv="2" hidden>Nedjeljna misa. Mihi, Mimi i Rafaela gase svijeće, razbacuju molitvenike, skrivaju se ispod klupa i trče van dirati golubove. Teta Seka vreba da ih odvede u sektu Neos. Ti si mama Iva ili tata Josip. Hvataj ih i vraćaj u kolica, a za vrijeme molitve budi posebno brz.</p>
+    <p class="lede" data-for-lv="2" hidden>Nedjeljna misa. Mihi, Mimi i Rafaela gase svijeće, razbacuju molitvenike i trče van dirati golubove. Teta Seka vreba da ih odvede u sektu Neos. Ti si mama Iva ili tata Josip. Hvataj ih i vraćaj u kolica, a za vrijeme molitve budi posebno brz.</p>
 
     <div class="actions">
       <button class="b-mama" id="p-mama">Igraj kao mama Lucija</button>
@@ -145,7 +145,7 @@ body.mobile-play .bar button{font-size:14px;padding:5px 12px}
       </div>
       <p class="o-status" id="o-status" role="status">Provjeravam vezu…</p>
     </div>
-    <p class="controls">Jedan igrač: <kbd>←</kbd><kbd>↑</kbd><kbd>→</kbd><kbd>↓</kbd> ili <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd>, a na mobitelu vuci prstom po ekranu. Dva igrača: mama na <kbd>WASD</kbd>, tata na strelicama. <kbd>P</kbd> pauza, <kbd>M</kbd> zvuk. Runda traje 100 sekundi. <span style="opacity:.7">Verzija 24</span></p>
+    <p class="controls">Jedan igrač: <kbd>←</kbd><kbd>↑</kbd><kbd>→</kbd><kbd>↓</kbd> ili <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd>, a na mobitelu vuci prstom po ekranu. Dva igrača: mama na <kbd>WASD</kbd>, tata na strelicama. <kbd>P</kbd> pauza, <kbd>M</kbd> zvuk. Runda traje 100 sekundi. <span style="opacity:.7">Verzija 25</span></p>
 
     <ul class="rules" data-for-lv="1">
       <li><b>+100</b><span>za svako dijete koje doneseš do kolica (možeš nositi dvoje odjednom)</span></li>
@@ -160,7 +160,7 @@ body.mobile-play .bar button{font-size:14px;padding:5px 12px}
       <li><b>+50</b><span>kad dodirneš tetu Seku dok nosi dijete i spasiš ga od Neosa</span></li>
       <li><b class="bad">Molitva</b><span>dok traje, živci padaju duplo brže</span></li>
       <li><b>Paketi</b><span>baka Katarina donosi pakete iz pošte: Vinted paket Ivi daje brzinu, a novi objektiv Josipu bljesak koji zaslijepi djecu</span></li>
-      <li><b>Klupe</b><span>djeca se skrivaju ispod klupa. Iva ih vidi rendgenom, a Josip samo upitnik.</span></li>
+      <li><b>Rendgen</b><span>Iva rendgenom vidi koje dijete teta Seka želi ugrabiti.</span></li>
     </ul>
 
     <div class="cast" id="cast" data-for-lv="1">
@@ -175,15 +175,15 @@ body.mobile-play .bar button{font-size:14px;padding:5px 12px}
       <div class="who"><canvas data-p="pleme" width="340" height="220"></canvas><h3>Pleme Varnica</h3><p>Obiteljska grupa koja nikad ne spava. Kad stigne poruka, moraš je pročitati, pa si nakratko upola sporiji.</p></div>
     </div>
     <div class="cast" data-for-lv="2" hidden>
-      <div class="who"><canvas data-p="iva" width="340" height="220"></canvas><h3>Mama Iva</h3><p>Radiologinja. Ima moć da gleda rendgenom kroz klupe, pa vidi svako dijete koje se sakrilo. Voli kupovati dječju robu na Vintedu, a Vinted paket joj daje brzinu.</p></div>
-      <div class="who"><canvas data-p="josip" width="340" height="220"></canvas><h3>Tata Josip</h3><p>Fotograf koji snima u studiju i stalno kupuje fotoopremu. Novi objektiv mu daje bljesak koji zaslijepi djecu. Najviše „voli” kad ga Žak Houdek zove na sendviče. Svako malo se umori i zaspe na klupi na par sekundi.</p></div>
+      <div class="who"><canvas data-p="iva" width="340" height="220"></canvas><h3>Mama Iva</h3><p>Radiologinja. Rendgenom vidi koje je dijete teta Seka odabrala, pa stigne prije nje. Voli kupovati dječju robu na Vintedu, a Vinted paket joj daje brzinu.</p></div>
+      <div class="who"><canvas data-p="josip" width="340" height="220"></canvas><h3>Tata Josip</h3><p>Fotograf koji snima u studiju i stalno kupuje fotoopremu. Novi objektiv mu daje bljesak koji zaslijepi djecu. Najviše „voli” kad ga Žak Houdek zove na sendviče. Svako malo se umori i zaspe na podu na par sekundi.</p></div>
       <div class="who"><canvas data-p="mihi" width="340" height="220"></canvas><h3>Mihi</h3><p>Čim ugleda bager na ulici ispred crkve, trči van za njim i viče „BAGER!!!”. Voli dirati golubove i gasiti svijeće.</p></div>
       <div class="who"><canvas data-p="mimi" width="340" height="220"></canvas><h3>Mimi</h3><p>Krade mobitele: mami, tati, baki Katarini, pa čak i Žaku. Kad je uhvatiš, vratiš mobitel (+25). Voli dirati golubove.</p></div>
       <div class="who"><canvas data-p="rafaela" width="340" height="220"></canvas><h3>Rafaela</h3><p>Stara je tek par dana, pa samo puže. Spora je i ne bježi, ali teta Seka nju najviše želi odvesti.</p></div>
       <div class="who"><canvas data-p="seka" width="340" height="220"></canvas><h3>Teta Seka</h3><p>Plavuša i velika vjernica. Svima govori „srce malo”, „srculence” i „srce tetino”. Negativka koja krade djecu i nosi ih u sektu Neos. Dok nosi dijete prema vratima, uhvati je i spasi ga.</p></div>
       <div class="who"><canvas data-p="katarina" width="340" height="220"></canvas><h3>Baka Katarina</h3><p>Radi u pošti. Dok djeca rade nered, ona sprema crkvu, skuplja molitvenike i pali svijeće. Usput donese i paket.</p></div>
       <div class="who"><canvas data-p="zak" width="340" height="220"></canvas><h3>Žak Houdek</h3><p>Okrugao i uvijek sa sendvičem u ruci. Dolazi kad igra Josip i lijepi se za njega sa sendvičima. Dok je Žak blizu, Josip je puno sporiji.</p></div>
-      <div class="who"><canvas data-p="novagen" width="340" height="220"></canvas><h3>Nova generacija</h3><p>Grupa u kojoj si šalju slike, videe i teorije zavjere. Kad stigne poruka, moraš je pogledati, pa si nakratko upola sporiji.</p></div>
+      <div class="who"><canvas data-p="novagen" width="340" height="220"></canvas><h3>Nedjeljom u 2</h3><p>Grupa u kojoj si šalju slike, videe i teorije zavjere. Kad stigne poruka, moraš je pogledati, pa si nakratko upola sporiji.</p></div>
     </div>
   </section>
 
@@ -233,7 +233,7 @@ const LEVELS={
     mamaLook:{dress:'#2a9d8f',hair:'#c9953f',glasses:true,shoes:'#1d5c55'},
     tataLook:{shirt:'#3d405b',hair:'#2a1a10',camera:true,pants:'#22252e'}}
 };
-LEVELS[2].pews=[{x:130,y:260,w:270,h:22},{x:600,y:260,w:270,h:22},{x:130,y:400,w:270,h:22}];
+LEVELS[2].pews=[];
 let LV=1;try{if(localStorage.getItem('opTramvaj.level')==='2')LV=2;}catch(e){}
 const LVL=()=>LEVELS[LV];
 let STROLLER=LEVELS[1].stroller,OBST=LEVELS[1].obst,PEWS=[];
@@ -561,7 +561,7 @@ function drawMarin(c,k){
 function drawChatIcon(c,x,y,ng){
   c.fillStyle='#dcf8c6';c.strokeStyle=INK;c.lineWidth=2.5;rr(c,x-50,y-80,100,62,14);c.fill();c.stroke();
   c.beginPath();c.moveTo(x-34,y-19);c.lineTo(x-42,y-4);c.lineTo(x-22,y-19);c.closePath();c.fill();c.stroke();
-  c.fillStyle='#128c4a';c.font='900 12px Nunito, sans-serif';c.textAlign='center';c.fillText(ng?'Nova generacija':'Pleme Varnica',x,y-60);
+  c.fillStyle='#128c4a';c.font='900 12px Nunito, sans-serif';c.textAlign='center';c.fillText(ng?'Nedjeljom u 2':'Pleme Varnica',x,y-60);
   c.fillStyle=INK;c.font='800 11px Nunito, sans-serif';if(ng){c.fillText('[video] 🕊️📡',x,y-44);c.fillText('Golubovi = dronovi?!',x,y-29);}else{c.fillText('Baka: Jesu jeli?',x,y-44);c.fillText('Dida: ok',x,y-29);}
   ell(c,x+42,y-80,10,10,'#e2445c',true);c.fillStyle='#fff';c.font='900 11px Nunito, sans-serif';c.fillText('99',x+42,y-76);
 }
@@ -573,8 +573,8 @@ function drawChat(c){
   c.font='800 14px Nunito, "Segoe UI", sans-serif';
   const txt=`${ch.from}: ${ch.msg}`;
   c.fillStyle='#dcf8c6';c.strokeStyle=INK;c.lineWidth=2;rr(c,x,y,w,52,12);c.fill();c.stroke();
-  ell(c,x+24,y+26,15,15,'#128c4a',true);c.fillStyle='#fff';c.font='900 12px Nunito, sans-serif';c.textAlign='center';c.fillText(LV===2?'NG':'PV',x+24,y+30);
-  c.textAlign='left';c.fillStyle='#128c4a';c.font='900 13px Nunito, sans-serif';c.fillText(LV===2?'Nova generacija':CFG.grupa,x+46,y+20);
+  ell(c,x+24,y+26,15,15,'#128c4a',true);c.fillStyle='#fff';c.font='900 12px Nunito, sans-serif';c.textAlign='center';c.fillText(LV===2?'N2':'PV',x+24,y+30);
+  c.textAlign='left';c.fillStyle='#128c4a';c.font='900 13px Nunito, sans-serif';c.fillText(LV===2?'Nedjeljom u 2':CFG.grupa,x+46,y+20);
   c.fillStyle=INK;c.font='800 14px Nunito, "Segoe UI", sans-serif';
   let t=txt;while(c.measureText(t).width>w-56&&t.length>4)t=t.slice(0,-2);if(t!==txt)t=t.slice(0,-1)+'…';
   c.fillText(t,x+46,y+40);
@@ -851,16 +851,16 @@ const L={
 };
 
 const L2={
-  catchmama:b=>['Vidim te kroz klupu!','Rendgen ne laže!',`Ajmo u kolica, ${gx(b,'maleni','malena')}!`,'Tiho, misa je!','Ovo ide u Novu generaciju.'],
+  catchmama:b=>['Vidim te rendgenom!','Rendgen ne laže!',`Ajmo u kolica, ${gx(b,'maleni','malena')}!`,'Tiho, misa je!','Ovo ide u grupu Nedjeljom u 2.'],
   catchtata:b=>['Smiješak! Uhvaćen'+gx(b,'','a')+'!','Tata te ima!','Savršen kadar!',`Ajde, ${b.name}, idemo!`,'Ovo ću fotkati za album.'],
   dropmama:['Tako. Sjedi i moli.','Vlažne maramice i idemo dalje.','Josipe, broji ih!','Imam još bodića s Vinteda za presvlačenje.'],
   droptata:['Savršen kadar: djeca u kolicima.','Klik! Za album.','Iva, vidi, uspio sam!','Bolje od sendviča sa Žakom.'],
   helptata:['Evo me, Iva! Pomažem!','Ajmo djeco, tata dolazi!'],
   failtata:['Iva, samo da isprobam novi objektiv!','Iva, gle kakvo je svjetlo kroz vitraje!','Žak me zove na sendviče...','Moram namjestiti blic...'],
-  helpmama:['Josipe, makni se, ja ću!','Vidim ih sve kroz klupe!'],
+  helpmama:['Josipe, makni se, ja ću!','Vidim ih sve rendgenom!'],
   failmama:['Samo da vidim Vinted...','Netko je kupio moj bodić!','Josipe, ja moram nešto platiti na Vintedu.'],
   idletata:['Gdje mi je stativ...','Iva, treba li pomoć?','Ovo svjetlo je savršeno...'],
-  idlemama:['Josipe, jesi ih vidio?','Vidim ih kroz klupe!','Josipe, treba li ti pomoć?'],
+  idlemama:['Josipe, jesi ih vidio?','Rendgen ih sve vidi!','Josipe, treba li ti pomoć?'],
   sekaEnter:['Dođi teti, srce malo!','Srculence, idemo na katehezu!','Srce tetino, Neos te čeka!','Aleluja! Tko će s tetom, srce malo?'],
   sekaGrab:b=>[`${b.name}, srce tetino, idemo u Neos!`,'Hajde, srculence, samo malo molitve!','Aleluja, imam te, srce malo!'],
   sekaCarry:['Neos, evo nas, srce malo!','Ne plači, srculence!','Srce tetino, pjevat ćemo cijelu noć!','Samo jedna mala kateheza, srce malo...'],
@@ -1109,7 +1109,7 @@ function chooseGoal(b){
   const toma=b.idx===0,elena=b.idx===1,mihi=b.idx===2,mimi=b.idx===3,raf=b.idx===4;
   if(LV===2){
     opts.push({w:raf?.6:2,g:{type:'candle',x:pick(CANDLES_X),y:174}});
-    const pw=pick(PEWS);opts.push({w:raf?2:3,g:{type:'pew',x:rand(pw.x+20,pw.x+pw.w-20),y:pw.y+8}});
+    opts.push({w:raf?2:3,g:{type:'wander',x:rand(80,920),y:rand(190,470)}});
     if(raf)opts.push({w:2,g:{type:'wander',x:rand(100,900),y:rand(180,470)}});
   }
   if(G.hack<=0)for(const tr of G.trams){
@@ -1245,7 +1245,7 @@ function updateBaby(b,dt){
       for(const t of phoneTargets()){
         if(dist(b,t)<48){
           b.phone=t;t.noPhone=true;b.stats.phones++;b.safe=1.4;b.goal=null;b.happy=2;b.phoneCd=10;
-          setBubble(b,pick(['Moj mobitel!','Halo? Baka Katarina?','Hihi, telefon!','Mimi zove Novu generaciju!']),1.6);
+          setBubble(b,pick(['Moj mobitel!','Halo? Baka Katarina?','Hihi, telefon!','Mimi zove grupu Nedjeljom u 2!']),1.6);
           setBubble(t,t===G.marin?'Moj mobitel! Ja sam programer, imam još tri.':t===G.zak?'Moj mobitel! A tko će zvati za sendviče?!':t===G.kata?'Mimi! Taj mobitel je službeni, iz pošte!':pick(['Gdje mi je mobitel?!','MIMI! Vrati mobitel!','Tko mi je uzeo mobitel?!']),2.2);
           if(t.kind){t.reading=Math.max(t.reading||0,1.5);}
           nerve(4,b.x,b.y-80);pop(b.x,b.y-100,'Mimi ukrala mobitel!','#d6b3ff');SFX.hack();
@@ -1253,7 +1253,7 @@ function updateBaby(b,dt){
         }
       }
     }
-    if(b.phone&&Math.random()<.004&&!(b.bubble&&b.bubble.t>0))setBubble(b,pick(['Halo? Teta Seka?','Selfie!','Bip bip bip!','Nova generacija, halo!']),1.4);
+    if(b.phone&&Math.random()<.004&&!(b.bubble&&b.bubble.t>0))setBubble(b,pick(['Halo? Teta Seka?','Selfie!','Bip bip bip!','Nedjeljom u 2, halo!']),1.4);
   }
   // Mihi i bager
   if(b.idx===2&&G.bager&&dist(b,G.bager)<90){
@@ -1389,7 +1389,7 @@ function update(dt){
   const CH=G.chat;CH.cd-=dt;if(CH.show)CH.show.t-=dt;
   if(CH.cd<=0){
     const [from,msg]=pick(LV===2?CHAT2:CHAT);CH.show={from,msg,t:4.5};CH.cd=rand(14,20);SFX.ping();
-    const pl=pick(G.players);pl.reading=2.5;setBubble(pl,pick(LV===2?(pl.kind==='mama'?['Samo da vidim Vinted...','Čekaj, baka piše...','Opet Nova generacija...']:['Žak opet piše za sendviče...','Samo da vidim tko piše...']):(pl.kind==='mama'?['Samo da vidim grupu...','Čekaj, baka piše...','Opet Pleme Varnica...']:['Samo da vidim tko piše...','Dida opet šalje hranu...','Je li to netko našao moj Velo?'])),2);
+    const pl=pick(G.players);pl.reading=2.5;setBubble(pl,pick(LV===2?(pl.kind==='mama'?['Samo da vidim Vinted...','Čekaj, baka piše...','Opet Nedjeljom u 2...']:['Žak opet piše za sendviče...','Samo da vidim tko piše...']):(pl.kind==='mama'?['Samo da vidim grupu...','Čekaj, baka piše...','Opet Pleme Varnica...']:['Samo da vidim tko piše...','Dida opet šalje hranu...','Je li to netko našao moj Velo?'])),2);
   }
 
   for(const p of G.pigeons){
@@ -1423,7 +1423,7 @@ function fallAsleep(p){
   let best=null,bd=1e9;
   for(const r of PEWS){const cx=clamp(p.x,r.x+50,r.x+r.w-50),cy=r.y+4,d=Math.hypot(cx-p.x,cy-p.y);if(d<bd){bd=d;best={x:cx,y:cy};}}
   if(best&&bd<170){p.x=best.x;p.y=best.y;}
-  p.sleep=3.5;setBubble(p,'Zzz...',1.2);pop(p.x,p.y-70,'Josip je zaspao na klupi!','#c9d6ee');SFX.tick();
+  p.sleep=3.5;setBubble(p,'Zzz...',1.2);pop(p.x,p.y-70,'Josip je zaspao na podu!','#c9d6ee');SFX.tick();
   const iva=activeParents().find(q=>q.kind==='mama');
   if(iva)setTimeout(()=>{if(G&&!G.over)setBubble(iva,pick(['JOSIPE! Probudi se!','Josipe, nije vrijeme za spavanje!','Opet spava...']),1.8);},700);
 }
@@ -1452,7 +1452,8 @@ function updateCrkva(dt){
     if(!best||S.huntT<=0){S.state='leave';setBubble(S,'Dobro, vidimo se na katehezi, srce malo!',2);}
     else{
       walkTo(S,best.x,best.y,118,dt);
-      if(dist(S,best)<30){S.carry=best;best.state='seka';best.goal=null;best.stats.neos++;S.state='carry';setBubble(S,pick(L2.sekaGrab(best)),2.2);setBubble(best,'Mamaaa!',1.4);nerve(5,S.x,S.y-150);pop(S.x,S.y-170,'Teta Seka odnosi: '+best.name+'!','#d6b3ff');SFX.mama();G.shake=6;}
+      S.target=best;
+      if(dist(S,best)<30){S.target=null;S.carry=best;best.state='seka';best.goal=null;best.stats.neos++;S.state='carry';setBubble(S,pick(L2.sekaGrab(best)),2.2);setBubble(best,'Mamaaa!',1.4);nerve(5,S.x,S.y-150);pop(S.x,S.y-170,'Teta Seka odnosi: '+best.name+'!','#d6b3ff');SFX.mama();G.shake=6;}
     }
   }
   else if(S.state==='carry'){
@@ -1570,7 +1571,9 @@ function render(){
     for(const r of PEWS)list.push({y:r.y+r.h,d:()=>drawPew(c,r)});
     for(const m of G.messes)list.push({y:m.y-1,d:()=>drawMess(c,m)});
     if(G.parcel){const pc=G.parcel;list.push({y:pc.y,d:()=>drawParcel(c,pc)});}
-    const S=G.seka;if(S.state!=='away')list.push({y:S.y,d:()=>{drawSeka(c,S);label(c,S.x,S.y,'Teta Seka','rgba(75,90,168,.95)');}});
+    const S=G.seka;
+    if(xr&&S.state==='hunt'&&S.target&&S.target.state==='free'){const tb=S.target;list.push({y:tb.y-1,d:()=>{c.fillStyle='rgba(120,255,160,.25)';c.beginPath();c.ellipse(tb.x,tb.y-24,28,36,0,0,Math.PI*2);c.fill();c.strokeStyle='rgba(60,200,110,.9)';c.lineWidth=2;c.setLineDash([4,3]);c.beginPath();c.ellipse(tb.x,tb.y-24,28,36,0,0,Math.PI*2);c.stroke();c.setLineDash([]);label(c,tb.x,tb.y+16,'RENDGEN: Seka ide po '+tb.name+'!','rgba(42,157,143,.95)');}});}
+    if(S.state!=='away')list.push({y:S.y,d:()=>{drawSeka(c,S);label(c,S.x,S.y,'Teta Seka','rgba(75,90,168,.95)');}});
     const K=G.kata;if(K.state!=='away')list.push({y:K.y,d:()=>{drawKatarina(c,K);label(c,K.x,K.y,'Baka Katarina','rgba(31,78,156,.95)');}});
     const Z=G.zak;if(Z.state!=='away')list.push({y:Z.y,d:()=>{drawZak(c,Z);label(c,Z.x,Z.y,'Žak Houdek','rgba(231,111,81,.95)');}});
   }
@@ -1819,7 +1822,7 @@ function renderEnd(S,isHost){
   const score=S.sc,bestKey=(lv===2?'crkva-':'')+(S.on?'online':S.mode);
   const prev=getBest(bestKey),isNew=isHost&&!S.no&&score>prev;if(isNew)setBest(bestKey,score);
   const title=S.no?'Živci su pukli!':rank(score,lv);
-  const quotes=lv===2?(S.no?['Josipe, sljedeći put ti vodiš djecu na misu.','Ovo ide na Vinted: troje djece, malo korištene.','Vidjela sam sve kroz klupe. SVE.']:['Vidjela sam sve kroz klupe. SVE.','Ipak smo izdržali cijelu misu!','Josipe, jesi slikao ovo?'])
+  const quotes=lv===2?(S.no?['Josipe, sljedeći put ti vodiš djecu na misu.','Ovo ide na Vinted: troje djece, malo korištene.','Vidjela sam sve rendgenom. SVE.']:['Vidjela sam sve rendgenom. SVE.','Ipak smo izdržali cijelu misu!','Josipe, jesi slikao ovo?'])
     :(S.no?['Ivane, ti ih kupaš večeras.','Mama ide na kavu. Sama. Pet minuta.','Tko je kupio OVOLIKO čokolade?']:['Dobro, priznajem, bilo je malo i smiješno.','Sve ide u perilicu. I djeca.','Ivane, ovo smo dobro odradili.']);
   const tquotes=lv===2?['Imam odlične fotke kaosa.','Barem Žak nije došao... a ne, došao je.','Novi objektiv je bio vrijedan svake sekunde.']:['Ja sam samo tražio Velo...','Ja sam ih skoro sve uhvatio.','Jesmo li sad gotovi? Gdje mi je Velo?'];
   const ids=S.ids||S.bs.map((_,i)=>i);
@@ -1836,7 +1839,7 @@ function renderEnd(S,isHost){
     <h1 style="font-size:clamp(34px,6vw,56px)">${title}</h1>
     <p class="quote"><em>Mama ${LL.mama}:</em> „${pick(quotes)}”<br><em style="color:#1b4f9c">Tata ${LL.tata}:</em> „${pick(tquotes)}”</p>
     <div class="result">${fam}${cards}</div>
-    <div class="wa"><div class="wa-h">${lv===2?'Nova generacija':CFG.grupa}</div>
+    <div class="wa"><div class="wa-h">${lv===2?'Nedjeljom u 2':CFG.grupa}</div>
       ${lv===2?`<p><b>Iva:</b> ${S.no?'Ne pitajte. Živci su pukli usred mise.':`Preživjeli smo misu! ${score.toLocaleString('hr-HR')} bodova.`} Ugašeno svijeća: ${babies.reduce((a,b)=>a+(b.stats.candles||0),0)}. Mimi je ukrala ${babies.find(b=>b.idx===3)?.stats.phones||0} mobitela.</p>
       <p><b>Baka Katarina:</b> ${pick(['Ja sam sve pospremila. Opet.','[video: golub u crkvi, 3 minute]','Paketi su u pošti. Možda s čipom 👀'])}</p>
       <p><b>Teta Seka:</b> ${pick(['Molim za vas, srce malo 🙏','Ovo nije bila slučajnost, srculence. Sve je povezano. 🕊️📡','Srce tetino, aleluja! A golubovi su i dalje dronovi.'])}</p>
