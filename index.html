@@ -124,7 +124,7 @@ body.mobile-play .bar button{font-size:14px;padding:5px 12px}
       </div>
       <p class="o-status" id="o-status" role="status">Provjeravam vezu…</p>
     </div>
-    <p class="controls">Jedan igrač: <kbd>←</kbd><kbd>↑</kbd><kbd>→</kbd><kbd>↓</kbd> ili <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd>, a na mobitelu vuci prstom po ekranu. Dva igrača: mama na <kbd>WASD</kbd>, tata na strelicama. <kbd>P</kbd> pauza, <kbd>M</kbd> zvuk. Runda traje 100 sekundi. <span style="opacity:.7">Verzija 14</span></p>
+    <p class="controls">Jedan igrač: <kbd>←</kbd><kbd>↑</kbd><kbd>→</kbd><kbd>↓</kbd> ili <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd>, a na mobitelu vuci prstom po ekranu. Dva igrača: mama na <kbd>WASD</kbd>, tata na strelicama. <kbd>P</kbd> pauza, <kbd>M</kbd> zvuk. Runda traje 100 sekundi. <span style="opacity:.7">Verzija 15</span></p>
 
     <ul class="rules">
       <li><b>+100</b><span>za svako dijete koje doneseš do kolica (možeš nositi dvoje odjednom)</span></li>
@@ -162,8 +162,8 @@ body.mobile-play .bar button{font-size:14px;padding:5px 12px}
   <section id="over" class="panel" hidden></section>
 </main>
 
-<script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js"></script>
-<script>if(!window.Peer&&!window.peerjs)document.write('<script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"><\/script>');</script>
+<script src="https://cdn.jsdelivr.net/npm/mqtt@5.10.1/dist/mqtt.min.js"></script>
+<script>if(!window.mqtt)document.write('<script src="https://unpkg.com/mqtt@5.10.1/dist/mqtt.min.js"><\/script>');</script>
 <script>
 (() => {
 'use strict';
@@ -1312,38 +1312,34 @@ function renderEnd(S,isHost){
 
 /* ====== ONLINE: dva uređaja ====== */
 let ROOM=null,NET=null,TRANSPORT=null;
-function peerTransport(){
-  return {join:(name,role)=>new Promise((res,rej)=>{
-    const id='opertramvaj-varnica-'+name;
-    let peer;
-    const PC=window.Peer||(window.peerjs&&window.peerjs.Peer);
-    try{peer=role==='host'?new PC(id,{debug:1}):new PC({debug:1});}catch(e){rej(e);return;}
-    let conn=null,mine={},theirs=null,done=false;const hs=[],errs=[];
-    const emit=()=>{const peers=[{isMe:true,presence:mine}];if(conn&&conn.open&&theirs)peers.push({isMe:false,presence:theirs});hs.forEach(h=>{try{h({peers});}catch(e){}});};
-    const wire=c=>{
-      if(conn&&conn!==c&&conn.open){try{c.close();}catch(e){}return;}
-      conn=c;
-      c.on('open',()=>{try{c.send({p:mine});}catch(e){}emit();});
-      c.on('data',d=>{if(d&&d.p&&typeof d.p==='object'){theirs=d.p;emit();}});
-      c.on('close',()=>{if(conn===c){conn=null;theirs=null;emit();}});
-      c.on('error',()=>{});
+function mqttTransport(){
+  const BROKERS=['wss://broker.hivemq.com:8884/mqtt','wss://broker.emqx.io:8084/mqtt','wss://test.mosquitto.org:8081/mqtt'];
+  const tryConnect=(url,id)=>new Promise((ok,ko)=>{
+    let c;try{c=window.mqtt.connect(url,{clientId:'ot_'+id,clean:true,connectTimeout:6000,reconnectPeriod:2000,keepalive:20});}catch(e){ko(e);return;}
+    const t=setTimeout(()=>{try{c.end(true);}catch(e){}ko(new Error('timeout'));},7000);
+    c.once('connect',()=>{clearTimeout(t);ok(c);});
+    c.once('error',e=>{clearTimeout(t);try{c.end(true);}catch(_){}ko(e);});
+  });
+  return {join:async(name)=>{
+    const base='opertramvaj-varnica/'+name+'/';
+    const me=Math.random().toString(36).slice(2,10);
+    let client=null;
+    for(const url of BROKERS){try{client=await tryConnect(url,me);break;}catch(e){client=null;}}
+    if(!client)throw {type:'server nedostupan'};
+    let mine={},last=0;const others={},hs=[];
+    const emit=()=>{const now=Date.now();const peers=[{isMe:true,peer:me,presence:mine}];
+      for(const [id,o] of Object.entries(others))if(now-o.t<4500)peers.push({isMe:false,peer:id,presence:o.p});
+      hs.forEach(h=>{try{h({peers});}catch(e){}});};
+    client.subscribe(base+'#',{qos:0});
+    client.on('message',(topic,payload)=>{try{const d=JSON.parse(payload.toString());if(!d||d.id===me||typeof d.p!=='object'||!d.p)return;others[d.id]={p:d.p,t:Date.now()};emit();}catch(e){}});
+    const send=()=>{last=Date.now();try{client.publish(base+me,JSON.stringify({id:me,p:mine}),{qos:0});}catch(e){}};
+    const hb=setInterval(()=>{if(Date.now()-last>900)send();emit();},1000);
+    return {
+      presence:async patch=>{mine={...mine,...patch};send();},
+      onPeers:h=>{hs.push(h);setTimeout(emit,0);return()=>{};},
+      leave:async()=>{clearInterval(hb);try{client.end(true);}catch(e){}}
     };
-    const api={
-      presence:async patch=>{mine={...mine,...patch};if(conn&&conn.open){try{conn.send({p:mine});}catch(e){}}},
-      onPeers:(h,onErr)=>{hs.push(h);if(onErr)errs.push(onErr);setTimeout(emit,0);return()=>{};},
-      leave:async()=>{try{peer.destroy();}catch(e){}}
-    };
-    peer.on('open',()=>{
-      if(role==='host')peer.on('connection',wire);
-      else wire(peer.connect(id,{reliable:false,serialization:'json'}));
-      if(!done){done=true;res(api);}
-    });
-    peer.on('error',e=>{
-      if(!done){done=true;try{peer.destroy();}catch(_){}rej(e);return;}
-      if(e&&e.type==='peer-unavailable')errs.forEach(f=>{try{f({code:'not_found'});}catch(_){}});
-    });
-    setTimeout(()=>{if(!done){done=true;try{peer.destroy();}catch(_){}rej(new Error('timeout'));}},12000);
-  })};
+  }};
 }
 const ST=['free','held','carried','stroller'];
 function setOStatus(t){$('o-status').textContent=t;}
@@ -1351,11 +1347,11 @@ function setOStatus(t){$('o-status').textContent=t;}
 (async()=>{
   try{if(window.claude&&typeof window.claude.use==='function')ROOM=await window.claude.use('room');}catch(e){ROOM=null;}
   if(ROOM)TRANSPORT={join:n=>ROOM.join(n)};
-  else{
-    for(let i=0;i<30&&!(window.Peer||(window.peerjs&&window.peerjs.Peer));i++)await new Promise(r=>setTimeout(r,200));
-    if(window.Peer||(window.peerjs&&window.peerjs.Peer))TRANSPORT=peerTransport();
+  else if(!(window.claude&&typeof window.claude.use==='function')){
+    for(let i=0;i<30&&!window.mqtt;i++)await new Promise(r=>setTimeout(r,200));
+    if(window.mqtt)TRANSPORT=mqttTransport();
   }
-  if(!TRANSPORT){setOStatus('Igra na dva uređaja ovdje nije dostupna: nije se učitala biblioteka za spajanje (PeerJS). Osvježi stranicu ili isključi blokator oglasa.');return;}
+  if(!TRANSPORT){setOStatus(window.claude?'Igra na dva uređaja ovdje nije dostupna. Otvori igru u pregledniku na claude.ai (ne u aplikaciji) ili na GitHub stranici.':'Igra na dva uređaja ovdje nije dostupna: nije se učitala biblioteka za spajanje. Osvježi stranicu ili isključi blokator oglasa.');return;}
   $('o-host').disabled=false;$('o-join').disabled=false;
   setOStatus('Spremno. Jedan uređaj napravi igru, drugi upiše kod.');
 })();
