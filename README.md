@@ -1,6 +1,6 @@
 # Operacija Tramvaj
 
-Obiteljska igra u browseru. Mama Lucija i tata Ivan hvataju Tomu i Elenu prije nego što pipnu sve ZET-ove tramvaje, pojedu sve čokolade i završe u naručju prijatelja beskućnika s Autobusnog kolodvora.
+Obiteljska igra u browseru. Mama Lucija i tata Ivan hvataju Tomu, Elenu, Mihija i Mimi prije nego što pipnu sve ZET-ove tramvaje, pojedu sve čokolade i završe u naručju prijatelja beskućnika s Autobusnog kolodvora.
 
 **Igraj:** otvori `index.html` ili stranicu na GitHub Pagesu.
 
@@ -8,4 +8,4 @@ Obiteljska igra u browseru. Mama Lucija i tata Ivan hvataju Tomu i Elenu prije n
 - Dva igrača na istoj tipkovnici: mama na WASD, tata na strelicama
 - Igra na dva uređaja: na prvom uređaju „Napravi igru (ja sam mama)”, na drugom upiši kod i „Pridruži se (ja sam tata)”. Poruke idu preko javnog MQTT posrednika (HiveMQ, uz EMQX i Mosquitto kao rezervu), pa uređaji ne moraju biti na istoj mreži.
 
-Likovi: mama Lucija, tata Ivan, Toma, Elena, baka Suzana, dida Ivica, strika Marin, prijatelj beskućnik i grupa Pleme Varnica.
+Likovi: mama Lucija, tata Ivan, Toma, Elena, Mihi, Mimi, baka Suzana, dida Ivica, strika Marin, prijatelj beskućnik i grupa Pleme Varnica.
