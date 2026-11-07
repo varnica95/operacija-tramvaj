@@ -133,7 +133,7 @@ body.mobile-play .bar button{font-size:14px;padding:5px 12px}
       </div>
       <p class="o-status" id="o-status" role="status">Provjeravam vezu…</p>
     </div>
-    <p class="controls">Jedan igrač: <kbd>←</kbd><kbd>↑</kbd><kbd>→</kbd><kbd>↓</kbd> ili <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd>, a na mobitelu vuci prstom po ekranu. Dva igrača: mama na <kbd>WASD</kbd>, tata na strelicama. <kbd>P</kbd> pauza, <kbd>M</kbd> zvuk. Runda traje 100 sekundi. <span style="opacity:.7">Verzija 17</span></p>
+    <p class="controls">Jedan igrač: <kbd>←</kbd><kbd>↑</kbd><kbd>→</kbd><kbd>↓</kbd> ili <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd>, a na mobitelu vuci prstom po ekranu. Dva igrača: mama na <kbd>WASD</kbd>, tata na strelicama. <kbd>P</kbd> pauza, <kbd>M</kbd> zvuk. Runda traje 100 sekundi. <span style="opacity:.7">Verzija 18</span></p>
 
     <ul class="rules">
       <li><b>+100</b><span>za svako dijete koje doneseš do kolica (možeš nositi dvoje odjednom)</span></li>
@@ -148,8 +148,8 @@ body.mobile-play .bar button{font-size:14px;padding:5px 12px}
       <div class="who"><canvas data-p="tata" width="340" height="220"></canvas><h3>Tata Ivan</h3><p>Možeš biti i on. Kad nađe svoj Velo, odjednom je jako brz. Ako igraš kao mama, svako malo dođe pomoći, ali ponekad samo traži Velo.</p></div>
       <div class="who"><canvas data-p="toma" width="340" height="220"></canvas><h3>Toma</h3><p>Specijalist za tramvaje i dinosaure. Brz, tih i uvijek malo ljepljiv. Najviše ga vuku tramvaji, a sve je njegovo, pa Eleni zna oteti čokolade.</p></div>
       <div class="who"><canvas data-p="elena" width="340" height="220"></canvas><h3>Elena</h3><p>Kolekcionarka čokolada i voli ponekad pogledati Baby Shark. Ima viziju i ne dijeli. Kad joj Toma otme čokoladu, rasplače se i stoji na mjestu, pa je tad lako uhvatiti.</p></div>
-      <div class="who"><canvas data-p="mihi" width="340" height="220"></canvas><h3>Mihi</h3><p>Lovac na golubove. Kad nema tramvaja, juri golubove po cijelom kolodvoru i viče „Golub! Gugu!”.</p></div>
-      <div class="who"><canvas data-p="mimi" width="340" height="220"></canvas><h3>Mimi</h3><p>Kraljica zagrljaja. Najviše od svega voli da je prijatelj beskućnik digne u zrak, a baki trči čim je ugleda.</p></div>
+      <div class="who"><canvas data-p="mihi" width="340" height="220"></canvas><h3>Mihi</h3><p>Čim ugleda bager, trči za njim po cesti i viče „BAGER!!!”. Dok je kod bagera, živci ti polako padaju. Voli i dirati golubove.</p></div>
+      <div class="who"><canvas data-p="mimi" width="340" height="220"></canvas><h3>Mimi</h3><p>Krade mobitele. Prišulja se mami, tati ili striki Marinu i zbriše s mobitelom. Kad je uhvatiš, vratiš mobitel (+25). Voli i dirati golubove i zagrljaje prijatelja beskućnika.</p></div>
       <div class="who"><canvas data-p="frend" width="340" height="220"></canvas><h3>Prijatelj beskućnik</h3><p>Najbolji frend s Autobusnog. Bebe trče k njemu da ih digne u zrak. Dok ih drži, padaju ti živci, pa ih otmi iz njegovih ruku.</p></div>
       <div class="who"><canvas data-p="baka" width="340" height="220"></canvas><h3>Baka Suzana</h3><p>Farmaceutska tehničarka. Svaku bebu zove „bakino sunce” i daje joj čokoladu. Beba koju baka dotakne šest sekundi je pod bakinom zaštitom.</p></div>
       <div class="who"><canvas data-p="dida" width="340" height="220"></canvas><h3>Dida Ivica</h3><p>Veterinar koji stalno priča o hrani, a najviše o čobancu. Ako mu bebe priđu, pozove Dida Express. Stigni prvi pa ga nagovori na čobanac umjesto tramvaja.</p></div>
@@ -699,7 +699,7 @@ function setupCanvas(){
 function makeBaby(i){
   const d=BABIES[i];
   return {...d,idx:i,x:380+i*80,y:500,dir:1,moving:false,phase:i*1.3,state:'free',brushes:0,happy:0,shield:0,safe:1,
-    friendCd:2,holdT:0,timer:0,bubble:null,goal:null,goalT:0,shieldMsg:0,fleeCd:0,stealCd:4,cry:0,
+    friendCd:2,holdT:0,timer:0,bubble:null,goal:null,goalT:0,shieldMsg:0,fleeCd:0,stealCd:4,cry:0,phone:null,phoneCd:6,pigCd:0,
     stats:{trams:0,hug:0,choc:0,caught:0,stolen:0,cried:0}};
 }
 function makeParent(kind,scheme,ai){
@@ -720,7 +720,7 @@ function newGame(mode){
     dida:{x:665,y:342,cd:8,bubble:null,idleCd:4,inGame:true},
     chat:{cd:rand(9,13),show:null},
     pigeons:Array.from({length:5},()=>({x:rand(330,460),y:rand(470,620),dir:pick([-1,1]),z:0,vx:0,vy:0,cd:rand(0,2)})),
-    spawn:{tr:[1.5,3.5],item:.5,veg:rand(14,18),velo:rand(8,12)},
+    spawn:{tr:[1.5,3.5],item:.5,veg:rand(14,18),velo:rand(8,12),bag:rand(10,15)},bager:null,
     paused:false,over:false,shake:0,lastTick:11,stats:{catches:0,taken:0,dropped:0},nervesOut:false};
   setBubble(players[0],players[0].kind==='mama'?'Djeco, nitko ne dira tramvaj!':'Djeco, tata je glavni danas!',2.4);
   setBubble(G.babies[0],'Tamvaj!',1.6);setBubble(G.babies[1],'Čokolada!',1.6);
@@ -780,6 +780,7 @@ function grab(p,b){
   if(b.state==='held'){G.friend.holding=null;setBubble(G.friend,pick(L.friendLose),2);b.friendCd=3;}
   b.state='carried';b.carrier=p;p.carried.push(b);b.goal=null;
   const lost=b.brushes;b.brushes=0;b.stats.caught++;G.stats.catches++;
+  if(b.phone){const t=b.phone;t.noPhone=false;b.phone=null;G.score+=25;pop(b.x,b.y-115,'+25 mobitel vraćen','#d6b3ff');setTimeout(()=>{if(G)setBubble(t,t===G.marin?'Hvala! Ja sam programer.':'Evo ga, moj mobitel!',1.8);},900);}
   if(lost){G.score+=15*lost;G.stats.taken+=lost;pop(b.x,b.y-90,`+${15*lost} · oduzeto ${lost} ${chocWord(lost)}`,'#8fe0c0');}
   setBubble(p,pick(L['catch'+p.kind](b)),2);setBubble(b,'Uaaaa!',1.2);
   G.shake=5;SFX.mama();
@@ -827,6 +828,13 @@ function parentInteract(p){
 }
 
 /* ---- baby AI ---- */
+function phoneTargets(){
+  const ts=[...G.players];
+  if(G.npc&&G.npc.state!=='away'&&G.npc.state!=='enter')ts.push(G.npc.p);
+  if(G.marin.state==='here')ts.push(G.marin);
+  return ts.filter(t=>!t.noPhone);
+}
+function phoneOwnerName(t){return t===G.marin?'Strika Marin':t.kind==='mama'?'Mama':'Tata';}
 function chooseGoal(b){
   const opts=[];
   const toma=b.idx===0,elena=b.idx===1,mihi=b.idx===2,mimi=b.idx===3;
@@ -840,7 +848,9 @@ function chooseGoal(b){
   }
   for(const it of G.items)opts.push({w:(elena?5:2.2)*(200/(80+dist(b,it))),g:{type:'item',it}});
   if(!G.friend.holding&&b.friendCd<=0)opts.push({w:mimi?6:2.2,g:{type:'friend'}});
-  if(mihi&&G.pigeons.length)opts.push({w:4,g:{type:'pigeon',p:pick(G.pigeons)}});
+  if((mihi||mimi)&&G.pigeons.length)opts.push({w:mihi?4:3,g:{type:'pigeon',p:pick(G.pigeons)}});
+  if(mihi&&G.bager){b.goal={type:'bager'};b.goalT=rand(3,5);return;}
+  if(mimi&&!b.phone&&b.phoneCd<=0){const ts=phoneTargets();if(ts.length)opts.push({w:5,g:{type:'phone',t:pick(ts)}});}
   if(G.baka.state==='here')opts.push({w:mimi?9:6,g:{type:'baka'}});
   if(G.dida.cd<=0)opts.push({w:2,g:{type:'dida'}});
   const sis=G.babies[1];
@@ -857,6 +867,8 @@ function goalPos(b){
   if(g.type==='tram'){if(!G.trams.includes(g.tr)||g.tr.hit.has(b.idx)||G.hack>0)return null;return {x:g.x,y:g.y};}
   if(g.type==='item'){if(!G.items.includes(g.it))return null;return g.it;}
   if(g.type==='friend'){if(G.friend.holding||b.friendCd>0)return null;return {x:G.friend.x,y:G.friend.y+12};}
+  if(g.type==='bager'){if(!G.bager)return null;return {x:clamp(G.bager.x-G.bager.dir*70,30,970),y:G.bager.y+12};}
+  if(g.type==='phone'){if(b.phone||!phoneTargets().includes(g.t))return null;return g.t;}
   if(g.type==='pigeon'){if(!G.pigeons.includes(g.p))return null;return g.p;}
   if(g.type==='baka'){if(G.baka.state!=='here')return null;return G.baka;}
   if(g.type==='sister'){const e=G.babies[1];if(e.state!=='free'||e.brushes<=0||b.stealCd>0)return null;return e;}
@@ -890,6 +902,7 @@ function updateBaby(b,dt){
   if(dg>6){vx/=dg;vy/=dg;}else{vx=0;vy=0;}
   for(const p of activeParents()){
     if(p.ai&&G.npc.state!=='help')continue;
+    if(b.goal&&b.goal.type==='phone'&&b.goal.t===p)continue;
     const d=dist(b,p);
     if(d<150&&d>0){const w=(1-d/150)*1.7;vx+=(b.x-p.x)/d*w;vy+=(b.y-p.y)/d*w;
       if(d<90&&b.fleeCd<=0&&Math.random()<.02){setBubble(b,pick(L.flee),1.1);b.fleeCd=3;}}
@@ -934,6 +947,41 @@ function updateBaby(b,dt){
     setBubble(K,pick(L.bakaGive),2.4);pop(b.x,b.y-80,'Bakina zaštita 6 s','#ff9ccf');SFX.hug();
   }
   const D=G.dida;
+  // Mimi krade mobitele
+  if(b.idx===3){
+    b.phoneCd-=dt;
+    if(!b.phone&&b.phoneCd<=0){
+      for(const t of phoneTargets()){
+        if(dist(b,t)<48){
+          b.phone=t;t.noPhone=true;b.safe=1.4;b.goal=null;b.happy=2;b.phoneCd=10;
+          setBubble(b,pick(['Moj mobitel!','Halo? Baka?','Hihi, telefon!','Mimi zove Konzum!']),1.6);
+          setBubble(t,t===G.marin?'Moj mobitel! Ja sam programer, imam još tri.':pick(['Gdje mi je mobitel?!','MIMI! Vrati mobitel!','Tko mi je uzeo mobitel?!']),2.2);
+          if(t.kind){t.reading=Math.max(t.reading||0,1.5);}
+          nerve(4,b.x,b.y-80);pop(b.x,b.y-100,'Mimi ukrala mobitel!','#d6b3ff');SFX.hack();
+          break;
+        }
+      }
+    }
+    if(b.phone&&Math.random()<.004&&!(b.bubble&&b.bubble.t>0))setBubble(b,pick(['Halo? Dida?','Selfie!','Bip bip bip!','Pleme Varnica, halo!']),1.4);
+  }
+  // Mihi i bager
+  if(b.idx===2&&G.bager&&dist(b,G.bager)<90){
+    G.nerves=Math.max(0,G.nerves-1.5*dt);
+    if(!(b.bubble&&b.bubble.t>0)&&Math.random()<.02)setBubble(b,pick(['BAGER!!!','Bager, čekaj me!','Bruuum bruuum!','Mihi vozi bager!']),1.3);
+  }
+  // Mihi i Mimi diraju golubove
+  if(b.idx>=2){
+    b.pigCd-=dt;
+    for(const pg of G.pigeons){
+      if(b.pigCd<=0&&!(pg.z>0)&&dist(b,pg)<30){
+        b.pigCd=2.5;b.happy=1;nerve(2,pg.x,pg.y-30);
+        setBubble(b,pick(['Gugu!','Golub!','Pi-pi!','Mekan golub!']),1.1);
+        const near=activeParents().find(pp=>!pp.ai&&dist(pp,b)<220);
+        if(near&&!(near.bubble&&near.bubble.t>0))setBubble(near,pick(['Ne diraj golubove, fuj!','Ruke! Vlažne maramice!','Golubovi nisu za maženje!']),1.8);
+        break;
+      }
+    }
+  }
   if(D.cd<=0&&dist(b,D)<44){
     D.cd=20;const ti=Math.random()<.5?0:1,dir=ti===0?1:-1,len=270;
     G.trams.push({x:dir>0?-len-20:W+20,y:TRACKS[ti],dir,len,num:'D',dest:'DIDA EXPRESS',speed:125,hit:new Set(),bubble:{text:'Sljedeća stanica: ručak kod dide!',t:2.5},special:true,color:'#c0392b'});
@@ -1000,6 +1048,9 @@ function update(dt){
   for(const tr of G.trams){if(G.hack<=0)tr.x+=tr.dir*tr.speed*dt;if(tr.bubble)tr.bubble.t-=dt;}
   G.trams=G.trams.filter(tr=>tr.dir>0?tr.x<W+40:tr.x+tr.len>-40);
 
+  G.spawn.bag-=dt;
+  if(G.spawn.bag<=0&&!G.bager){const dir=Math.random()<.5?1:-1;G.bager={x:dir>0?-90:W+90,y:197,dir,speed:60};const mh=G.babies[2];if(mh){mh.goal=null;mh.goalT=0;setBubble(mh,'BAGER!!!',1.5);}G.spawn.bag=rand(18,26);}
+  if(G.bager){G.bager.x+=G.bager.dir*G.bager.speed*dt;if(G.bager.x<-120||G.bager.x>W+120)G.bager=null;}
   G.spawn.item-=dt;
   if(G.spawn.item<=0){if(G.items.length<5){const p=freeSpot();if(p)G.items.push({...p,gold:Math.random()<.09,ph:rand(0,6)});}G.spawn.item=rand(1.6,3);}
   G.spawn.veg-=dt;
@@ -1075,6 +1126,26 @@ function drawParent(c,p){
   label(c,p.x,p.y,p.ai?nm:G.online?(G.players[G.localIdx]===p?'▲ '+nm+' (ti)':nm):(G.mode==='both'?nm+(p.scheme==='wasd'?' · WASD':' · strelice'):'▲ '+nm),p.ai?'rgba(91,103,133,.9)':(p.kind==='mama'?'rgba(226,68,92,.95)':'rgba(27,79,156,.95)'));
 }
 
+function drawBager(c,g){
+  const x=g.x,y=g.y,d=g.dir;
+  c.save();c.translate(x,y);c.scale(d,1);
+  ell(c,0,4,58,7,'rgba(0,0,0,.25)');
+  c.fillStyle='#3b3f4a';c.strokeStyle=INK;c.lineWidth=2.5;rr(c,-50,-14,92,18,9);c.fill();c.stroke();
+  for(let i=0;i<5;i++)ell(c,-40+i*19,-5,6,6,'#6b7280',true);
+  c.fillStyle='#f2b705';rr(c,-44,-48,70,34,6);c.fill();c.stroke();
+  c.fillStyle='#f2b705';rr(c,-40,-82,38,36,5);c.fill();c.stroke();
+  c.fillStyle='#bfe3f7';rr(c,-34,-76,26,20,3);c.fill();c.stroke();
+  ell(c,-21,-64,5,6,SKIN);
+  const a=Math.sin(NOW*2)*.15;
+  c.save();c.translate(20,-40);c.rotate(-.7+a);
+  c.fillStyle='#f2b705';rr(c,0,-6,62,12,5);c.fill();c.stroke();
+  c.translate(60,0);c.rotate(1.6-a*2);rr(c,0,-5,44,10,4);c.fill();c.stroke();
+  c.translate(44,0);c.fillStyle='#8a8f99';c.beginPath();c.moveTo(0,-8);c.lineTo(16,-2);c.lineTo(10,14);c.lineTo(-4,10);c.closePath();c.fill();c.stroke();
+  c.restore();
+  c.restore();
+  c.fillStyle=INK;c.font='12px "Lilita One", sans-serif';c.textAlign='center';c.fillText('BAGER',x-10*d,y-24);
+}
+
 function drawVelo(c,v){
   if(v.t<3&&Math.floor(NOW*8)%2)return;
   const bob=Math.sin(NOW*5)*3,x=v.x,y=v.y-10+bob;
@@ -1103,6 +1174,7 @@ function render(){
   for(const p of G.pigeons)list.push({y:p.y,d:()=>drawPigeon(c,p)});
   if(G.vegeta){const v=G.vegeta;list.push({y:v.y,d:()=>drawVegeta(c,v)});}
   if(G.velo){const v=G.velo;list.push({y:v.y,d:()=>drawVelo(c,v)});}
+  if(G.bager){const g=G.bager;list.push({y:g.y+6,d:()=>drawBager(c,g)});}
   list.push({y:G.friend.y,d:()=>{drawFriend(c,G.friend);label(c,G.friend.x,G.friend.y,'Prijatelj beskućnik');}});
   if(G.baka.state!=='away')list.push({y:G.baka.y,d:()=>{drawBaka(c,G.baka);label(c,G.baka.x,G.baka.y,'Baka '+CFG.baka,'rgba(197,90,138,.95)');}});
   if(G.marin.state!=='away')list.push({y:G.marin.y,d:()=>{drawMarin(c,G.marin);label(c,G.marin.x,G.marin.y,'Strika Marin','rgba(45,49,66,.95)');}});
@@ -1116,6 +1188,7 @@ function render(){
       if(b.shield>0){c.fillStyle='rgba(255,156,207,.35)';c.beginPath();c.ellipse(b.x,b.y-26,26,34,0,0,Math.PI*2);c.fill();
         for(let i=0;i<3;i++){const a=NOW*3+i*2.1;c.font='14px sans-serif';c.textAlign='center';c.fillStyle='#e2447f';c.fillText('♥',b.x+Math.cos(a)*26,b.y-28+Math.sin(a)*30);}}
       drawBaby(c,b,b.x,b.y,{sad:b.state==='stroller'||b.cry>0});c.globalAlpha=1;
+      if(b.phone){c.save();c.translate(b.x+18,b.y-34);c.rotate(Math.sin(NOW*8)*.3);c.fillStyle='#222';c.strokeStyle=INK;c.lineWidth=1.5;rr(c,-5,-9,10,18,2);c.fill();c.stroke();c.fillStyle='#9be7ff';c.fillRect(-3.5,-7,7,13);c.restore();}
       if(b.cry>0)for(let i=0;i<2;i++){const p=(NOW*2+i/2)%1;ell(c,b.x+(i?9:-9),b.y-36+p*16,2.5,3.5,'rgba(120,190,255,'+(1-p)+')');}
       if(b.state==='free')label(c,b.x,b.y,b.name,b.color);
       if(b.state==='stroller'){c.fillStyle='#fff';c.font='900 12px Nunito, sans-serif';c.textAlign='center';c.fillText(Math.ceil(b.timer)+' s',b.x,b.y-66);}
@@ -1496,12 +1569,13 @@ function snap(){
   const npc=G.npc&&G.npc.state!=='away'?G.npc.p:null;
   return {
     g:G.gid,o:G.over?1:0,pa:G.paused?1:0,t:f1(G.time),tt:f1(G.t),nv:Math.ceil(G.nerves),sc:Math.floor(G.score),hk:f1(G.hack),sh:r(G.shake),
-    B:G.babies.map(b=>[r(b.x),r(b.y),ST.indexOf(b.state),b.brushes,b.dir,b.moving?1:0,b.happy>0?1:0,f1(b.shield),f1(b.cry),b.safe>0?1:0,Math.ceil(b.timer),bub(b)]),
+    B:G.babies.map(b=>[r(b.x),r(b.y),ST.indexOf(b.state),b.brushes,b.dir,b.moving?1:0,b.happy>0?1:0,f1(b.shield),f1(b.cry),b.safe>0?1:0,Math.ceil(b.timer),bub(b),b.phone?1:0]),
     P:G.players.map(p=>[r(p.x),r(p.y),p.face,p.moving?1:0,f1(p.super),f1(p.velo),p.reading>0?1:0,p.carried.map(c=>c.idx),bub(p)]),
     T:G.trams.map(t=>[r(t.x),t.y,t.dir,t.special?0:t.num,t.special?'':t.dest,r(t.speed),t.special?1:0,bub(t)]),
     I:G.items.map(i=>[r(i.x),r(i.y),i.gold?1:0]),
     V:G.vegeta?[r(G.vegeta.x),r(G.vegeta.y),f1(G.vegeta.t)]:0,
     VL:G.velo?[r(G.velo.x),r(G.velo.y),f1(G.velo.t)]:0,
+    BG:G.bager?[r(G.bager.x),G.bager.y,G.bager.dir]:0,
     F:[G.friend.holding?G.friend.holding.idx:-1,G.friend.wave>0?1:0,bub(G.friend)],
     K:[G.baka.state==='away'?0:1,r(G.baka.x),r(G.baka.y),G.baka.moving?1:0,G.baka.wave>0?1:0,bub(G.baka)],
     M:[G.marin.state==='away'?0:1,r(G.marin.x),r(G.marin.y),G.marin.moving?1:0,G.marin.wave>0?1:0,bub(G.marin)],
@@ -1539,12 +1613,13 @@ function applySnap(s){
   let first=false;
   if(!G||!G.remote||G.gid!==s.g){G=viewG(s.g);first=true;if(!s.o){show('play');$('btn-pause').textContent='Pauza';}}
   G.paused=!!s.pa;G.time=s.t;G.t=s.tt;G.nerves=s.nv;G.score=s.sc;G.hack=s.hk;G.shake=s.sh;
-  s.B.forEach((a,i)=>{const b=G.babies[i];setPos(b,a[0],a[1],first);b.state=ST[a[2]]||'free';b.brushes=a[3];b.dir=a[4];b.moving=!!a[5];b.happy=a[6];b.shield=a[7];b.cry=a[8];b.safe=a[9];b.timer=a[10];b.bubble=unb(a[11]);});
+  s.B.forEach((a,i)=>{const b=G.babies[i];setPos(b,a[0],a[1],first);b.state=ST[a[2]]||'free';b.brushes=a[3];b.dir=a[4];b.moving=!!a[5];b.happy=a[6];b.shield=a[7];b.cry=a[8];b.safe=a[9];b.timer=a[10];b.bubble=unb(a[11]);b.phone=a[12]?{}:null;});
   s.P.forEach((a,i)=>{const p=G.players[i];setPos(p,a[0],a[1],first);p.face=a[2];p.moving=!!a[3];p.super=a[4];p.velo=a[5];p.reading=a[6];p.carried=a[7].map(j=>G.babies[j]);p.bubble=unb(a[8]);});
   G.trams=s.T.map(a=>({x:a[0],y:a[1],dir:a[2],num:a[3],dest:a[4]||'DIDA EXPRESS',len:270,speed:a[5],special:!!a[6],color:a[6]?'#c0392b':undefined,bubble:unb(a[7]),hit:new Set()}));
   G.items=s.I.map((a,i)=>({x:a[0],y:a[1],gold:!!a[2],ph:i*1.7}));
   G.vegeta=s.V?{x:s.V[0],y:s.V[1],t:s.V[2]}:null;
   G.velo=s.VL?{x:s.VL[0],y:s.VL[1],t:s.VL[2]}:null;
+  G.bager=s.BG?{x:s.BG[0],y:s.BG[1],dir:s.BG[2],speed:60}:null;
   G.friend.holding=s.F[0]>=0?G.babies[s.F[0]]:null;G.friend.wave=s.F[1];G.friend.bubble=unb(s.F[2]);
   const K=G.baka;K.state=s.K[0]?'here':'away';setPos(K,s.K[1],s.K[2],first);K.moving=!!s.K[3];K.wave=s.K[4];K.bubble=unb(s.K[5]);
   const M=G.marin;M.state=s.M[0]?'here':'away';setPos(M,s.M[1],s.M[2],first);M.moving=!!s.M[3];M.wave=s.M[4];M.bubble=unb(s.M[5]);
@@ -1562,6 +1637,7 @@ function guestFrame(dt){
   if(!G.paused){
     G.babies.forEach(ease);G.players.forEach(ease);ease(G.baka);ease(G.marin);
     if(G.hack<=0)for(const tr of G.trams)tr.x+=tr.dir*tr.speed*dt;
+    if(G.bager)G.bager.x+=G.bager.dir*G.bager.speed*dt;
     for(const p of G.pops)p.y-=40*dt;
   }
   G.players.forEach(p=>{if(p.carried)p.carried.forEach(b=>{b.x=p.x;b.y=p.y;});});
