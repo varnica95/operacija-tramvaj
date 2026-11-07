@@ -118,7 +118,7 @@ kbd{font-family:var(--f-body);font-weight:900;background:#fff;border:2px solid v
       </div>
       <p class="o-status" id="o-status" role="status">Provjeravam vezu…</p>
     </div>
-    <p class="controls">Jedan igrač: <kbd>←</kbd><kbd>↑</kbd><kbd>→</kbd><kbd>↓</kbd> ili <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd>, a na mobitelu vuci prstom po ekranu. Dva igrača: mama na <kbd>WASD</kbd>, tata na strelicama. <kbd>P</kbd> pauza, <kbd>M</kbd> zvuk. Runda traje 100 sekundi.</p>
+    <p class="controls">Jedan igrač: <kbd>←</kbd><kbd>↑</kbd><kbd>→</kbd><kbd>↓</kbd> ili <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd>, a na mobitelu vuci prstom po ekranu. Dva igrača: mama na <kbd>WASD</kbd>, tata na strelicama. <kbd>P</kbd> pauza, <kbd>M</kbd> zvuk. Runda traje 100 sekundi. <span style="opacity:.7">Verzija 11</span></p>
 
     <ul class="rules">
       <li><b>+100</b><span>za svako dijete koje doneseš do kolica (možeš nositi dvoje odjednom)</span></li>
@@ -155,6 +155,7 @@ kbd{font-family:var(--f-body);font-weight:900;background:#fff;border:2px solid v
 </main>
 
 <script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js"></script>
+<script>if(!window.Peer&&!window.peerjs)document.write('<script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"><\/script>');</script>
 <script>
 (() => {
 'use strict';
@@ -1241,7 +1242,8 @@ function peerTransport(){
   return {join:(name,role)=>new Promise((res,rej)=>{
     const id='opertramvaj-varnica-'+name;
     let peer;
-    try{peer=role==='host'?new window.Peer(id):new window.Peer();}catch(e){rej(e);return;}
+    const PC=window.Peer||(window.peerjs&&window.peerjs.Peer);
+    try{peer=role==='host'?new PC(id,{debug:1}):new PC({debug:1});}catch(e){rej(e);return;}
     let conn=null,mine={},theirs=null,done=false;const hs=[],errs=[];
     const emit=()=>{const peers=[{isMe:true,presence:mine}];if(conn&&conn.open&&theirs)peers.push({isMe:false,presence:theirs});hs.forEach(h=>{try{h({peers});}catch(e){}});};
     const wire=c=>{
@@ -1275,8 +1277,11 @@ function setOStatus(t){$('o-status').textContent=t;}
 (async()=>{
   try{if(window.claude&&typeof window.claude.use==='function')ROOM=await window.claude.use('room');}catch(e){ROOM=null;}
   if(ROOM)TRANSPORT={join:n=>ROOM.join(n)};
-  else if(typeof window.Peer==='function')TRANSPORT=peerTransport();
-  if(!TRANSPORT){setOStatus('Igra na dva uređaja ovdje nije dostupna. Otvori igru na claude.ai ili na GitHub stranici.');return;}
+  else{
+    for(let i=0;i<30&&!(window.Peer||(window.peerjs&&window.peerjs.Peer));i++)await new Promise(r=>setTimeout(r,200));
+    if(window.Peer||(window.peerjs&&window.peerjs.Peer))TRANSPORT=peerTransport();
+  }
+  if(!TRANSPORT){setOStatus('Igra na dva uređaja ovdje nije dostupna: nije se učitala biblioteka za spajanje (PeerJS). Osvježi stranicu ili isključi blokator oglasa.');return;}
   $('o-host').disabled=false;$('o-join').disabled=false;
   setOStatus('Spremno. Jedan uređaj napravi igru, drugi upiše kod.');
 })();
@@ -1298,7 +1303,7 @@ async function hostGame(){
   const code=String(Math.floor(1000+Math.random()*9000));
   setOStatus('Otvaram igru…');$('o-host').disabled=true;
   let nr;
-  try{nr=await TRANSPORT.join('tramvaj-'+code,'host');}catch(e){setOStatus('Ne mogu otvoriti igru. Provjeri internet i pokušaj ponovno.');$('o-host').disabled=false;return;}
+  try{nr=await TRANSPORT.join('tramvaj-'+code,'host');}catch(e){setOStatus('Ne mogu otvoriti igru ('+((e&&(e.type||e.code||e.message))||'greška')+'). Provjeri internet i pokušaj ponovno.');$('o-host').disabled=false;return;}
   NET={role:'host',code,nr,guest:false,input:{x:0,y:0},sendT:0,sfxId:0,sfxLog:[]};
   nr.presence({r:'h'}).catch(()=>{});
   nr.onPeers(ch=>{
@@ -1333,7 +1338,7 @@ async function joinGame(){
   await leaveOnline();
   setOStatus('Spajam se…');$('o-join').disabled=true;
   let nr;
-  try{nr=await TRANSPORT.join('tramvaj-'+code,'guest');}catch(e){setOStatus('Ne mogu se spojiti. Provjeri kod i internet pa pokušaj ponovno.');$('o-join').disabled=false;return;}
+  try{nr=await TRANSPORT.join('tramvaj-'+code,'guest');}catch(e){setOStatus('Ne mogu se spojiti ('+((e&&(e.type||e.code||e.message))||'greška')+'). Provjeri internet pa pokušaj ponovno.');$('o-join').disabled=false;return;}
   NET={role:'guest',code,nr,hostSeen:false,raw:null,lastSfx:null,lastIn:'',endGid:null};
   $('o-join').disabled=false;
   const myNet=NET;setTimeout(()=>{if(NET===myNet&&!NET.hostSeen){leaveOnline();setOStatus('Nema igre s tim kodom. Provjeri kod i pokušaj ponovno.');}},8000);
