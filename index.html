@@ -64,6 +64,13 @@ button:focus-visible{outline:4px solid var(--led);outline-offset:3px}
 #o-code{font-family:var(--f-led);font-size:30px;width:5.2ch;padding:4px 10px;border:3px solid var(--ink);border-radius:10px;background:#111;color:var(--led);letter-spacing:.15em}
 #o-code:focus-visible{outline:4px solid var(--led);outline-offset:2px}
 button:disabled{opacity:.5;cursor:not-allowed;transform:none}
+.o-h{font-size:19px;color:var(--ink);margin-top:4px}
+.o-lobbies{display:flex;flex-direction:column;gap:8px}
+.o-game{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;background:#fff;border:3px solid var(--ink);border-radius:12px;padding:8px 12px;font-weight:900}
+.o-game button{font-size:17px;padding:8px 14px}
+.o-muted{margin:0;color:var(--muted);font-size:15px}
+.o-manual #o-code{font-size:22px}
+.o-manual button{font-size:15px;padding:7px 12px}
 .o-status{font-weight:800;color:var(--ink)}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
 .controls{margin:14px 0 0;font-size:14px;line-height:2;color:var(--muted)}
@@ -117,14 +124,16 @@ body.mobile-play .bar button{font-size:14px;padding:5px 12px}
         <button class="b-mama" id="o-host" disabled>Napravi igru (ja sam mama)</button>
         <button class="b-two" id="o-start" hidden>Kreni!</button>
       </div>
-      <div class="o-row">
+      <h3 class="o-h">Otvorene igre</h3>
+      <div class="o-lobbies" id="o-lobbies"><p class="o-muted">Tražim otvorene igre…</p></div>
+      <div class="o-row o-manual">
         <label class="sr" for="o-code">Kod igre</label>
         <input id="o-code" inputmode="numeric" pattern="[0-9]*" maxlength="4" placeholder="Kod" autocomplete="off">
-        <button class="b-tata" id="o-join" disabled>Pridruži se (ja sam tata)</button>
+        <button class="b-tata" id="o-join" disabled>Pridruži se kodom</button>
       </div>
       <p class="o-status" id="o-status" role="status">Provjeravam vezu…</p>
     </div>
-    <p class="controls">Jedan igrač: <kbd>←</kbd><kbd>↑</kbd><kbd>→</kbd><kbd>↓</kbd> ili <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd>, a na mobitelu vuci prstom po ekranu. Dva igrača: mama na <kbd>WASD</kbd>, tata na strelicama. <kbd>P</kbd> pauza, <kbd>M</kbd> zvuk. Runda traje 100 sekundi. <span style="opacity:.7">Verzija 15</span></p>
+    <p class="controls">Jedan igrač: <kbd>←</kbd><kbd>↑</kbd><kbd>→</kbd><kbd>↓</kbd> ili <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd>, a na mobitelu vuci prstom po ekranu. Dva igrača: mama na <kbd>WASD</kbd>, tata na strelicama. <kbd>P</kbd> pauza, <kbd>M</kbd> zvuk. Runda traje 100 sekundi. <span style="opacity:.7">Verzija 16</span></p>
 
     <ul class="rules">
       <li><b>+100</b><span>za svako dijete koje doneseš do kolica (možeš nositi dvoje odjednom)</span></li>
@@ -1314,32 +1323,59 @@ function renderEnd(S,isHost){
 let ROOM=null,NET=null,TRANSPORT=null;
 function mqttTransport(){
   const BROKERS=['wss://broker.hivemq.com:8884/mqtt','wss://broker.emqx.io:8084/mqtt','wss://test.mosquitto.org:8081/mqtt'];
-  const tryConnect=(url,id)=>new Promise((ok,ko)=>{
-    let c;try{c=window.mqtt.connect(url,{clientId:'ot_'+id,clean:true,connectTimeout:6000,reconnectPeriod:2000,keepalive:20});}catch(e){ko(e);return;}
-    const t=setTimeout(()=>{try{c.end(true);}catch(e){}ko(new Error('timeout'));},7000);
+  const T={servers:[]};
+  const tryConnect=(url,cid)=>new Promise((ok,ko)=>{
+    let c;try{c=window.mqtt.connect(url,{clientId:cid,clean:true,connectTimeout:8000,reconnectPeriod:3000,keepalive:20});}catch(e){ko(e);return;}
+    const t=setTimeout(()=>{try{c.end(true);}catch(e){}ko(new Error('timeout'));},9000);
     c.once('connect',()=>{clearTimeout(t);ok(c);});
     c.once('error',e=>{clearTimeout(t);try{c.end(true);}catch(_){}ko(e);});
   });
-  return {join:async(name)=>{
-    const base='opertramvaj-varnica/'+name+'/';
+  T.join=async(name)=>{
+    const base='opertramvaj-varnica/v2/'+name+'/';
     const me=Math.random().toString(36).slice(2,10);
-    let client=null;
-    for(const url of BROKERS){try{client=await tryConnect(url,me);break;}catch(e){client=null;}}
-    if(!client)throw {type:'server nedostupan'};
-    let mine={},last=0;const others={},hs=[];
+    const clients=[];let mine={},last=0,left=false;const others={},hs=[];
     const emit=()=>{const now=Date.now();const peers=[{isMe:true,peer:me,presence:mine}];
-      for(const [id,o] of Object.entries(others))if(now-o.t<4500)peers.push({isMe:false,peer:id,presence:o.p});
+      for(const [id,o] of Object.entries(others))if(now-o.t<5000)peers.push({isMe:false,peer:id,presence:o.p});
       hs.forEach(h=>{try{h({peers});}catch(e){}});};
-    client.subscribe(base+'#',{qos:0});
-    client.on('message',(topic,payload)=>{try{const d=JSON.parse(payload.toString());if(!d||d.id===me||typeof d.p!=='object'||!d.p)return;others[d.id]={p:d.p,t:Date.now()};emit();}catch(e){}});
-    const send=()=>{last=Date.now();try{client.publish(base+me,JSON.stringify({id:me,p:mine}),{qos:0});}catch(e){}};
-    const hb=setInterval(()=>{if(Date.now()-last>900)send();emit();},1000);
+    const onMsg=(topic,payload)=>{try{const d=JSON.parse(payload.toString());if(!d||d.id===me||typeof d.p!=='object'||!d.p)return;
+      const o=others[d.id];if(o&&d.n<=o.n)return;others[d.id]={p:d.p,t:Date.now(),n:d.n};emit();}catch(e){}};
+    let seq=0;
+    const send=()=>{last=Date.now();const msg=JSON.stringify({id:me,n:++seq,p:mine});clients.forEach(c=>{try{c.publish(base+me,msg,{qos:0});}catch(e){}});};
+    const attach=(c,url)=>{if(left){try{c.end(true);}catch(e){}return;}clients.push(c);c.subscribe(base+'#',{qos:0});c.on('message',onMsg);
+      let h=url;try{h=new URL(url).hostname;}catch(e){}if(!T.servers.includes(h))T.servers.push(h);send();};
+    const attempts=BROKERS.map((url,i)=>tryConnect(url,'ot_'+me+'_'+i).then(c=>{attach(c,url);return c;}).catch(()=>null));
+    const first=await new Promise(res=>{let n=0;attempts.forEach(p=>p.then(c=>{if(c)res(c);else if(++n===attempts.length)res(null);}));});
+    if(!first)throw {type:'nijedan server nije dostupan'};
+    const hb=setInterval(()=>{if(Date.now()-last>800)send();emit();},1000);
     return {
-      presence:async patch=>{mine={...mine,...patch};send();},
+      presence:async patch=>{mine={...mine,...patch};for(const k in mine)if(mine[k]===null)delete mine[k];send();},
       onPeers:h=>{hs.push(h);setTimeout(emit,0);return()=>{};},
-      leave:async()=>{clearInterval(hb);try{client.end(true);}catch(e){}}
+      leave:async()=>{left=true;clearInterval(hb);clients.forEach(c=>{try{c.end(true);}catch(e){}});}
     };
-  }};
+  };
+  return T;
+}
+let LOBBY=null;
+async function startLobby(){
+  try{LOBBY=await TRANSPORT.join('lobby','lobby');}catch(e){LOBBY=null;$('o-lobbies').innerHTML='<p class="o-muted">Ne mogu dohvatiti popis igara ('+((e&&(e.type||e.code||e.message))||'greška')+'). Provjeri internet.</p>';setOStatus('Nema veze sa serverom.');return;}
+  const where=()=>TRANSPORT.servers?'Spojeno na: '+TRANSPORT.servers.join(', '):'Spojeno preko claude.ai';
+  setOStatus('Spremno. '+where()+'.');
+  LOBBY.onPeers(ch=>renderLobbies(ch.peers));
+  setInterval(()=>{if(TRANSPORT.servers&&!$('menu').hidden&&!NET)setOStatus('Spremno. '+where()+'.');},3000);
+}
+function renderLobbies(peers){
+  const box=$('o-lobbies');
+  const games=peers.filter(p=>!p.isMe&&p.presence&&p.presence.lobby&&/^\d{4}$/.test(String(p.presence.lobby.code)));
+  if(!games.length){box.innerHTML='<p class="o-muted">Nema otvorenih igara. Na drugom uređaju pritisni „Napravi igru”.</p>';return;}
+  box.innerHTML='';
+  for(const g of games){
+    const code=String(g.presence.lobby.code);
+    const row=document.createElement('div');row.className='o-game';
+    const t=document.createElement('span');t.textContent=`Mamina igra · kod ${code}`;
+    const btn=document.createElement('button');btn.className='b-tata';btn.textContent='Pridruži se (tata)';
+    btn.onclick=()=>{$('o-code').value=code;joinGame();};
+    row.append(t,btn);box.append(row);
+  }
 }
 const ST=['free','held','carried','stroller'];
 function setOStatus(t){$('o-status').textContent=t;}
@@ -1353,7 +1389,8 @@ function setOStatus(t){$('o-status').textContent=t;}
   }
   if(!TRANSPORT){setOStatus(window.claude?'Igra na dva uređaja ovdje nije dostupna. Otvori igru u pregledniku na claude.ai (ne u aplikaciji) ili na GitHub stranici.':'Igra na dva uređaja ovdje nije dostupna: nije se učitala biblioteka za spajanje. Osvježi stranicu ili isključi blokator oglasa.');return;}
   $('o-host').disabled=false;$('o-join').disabled=false;
-  setOStatus('Spremno. Jedan uređaj napravi igru, drugi upiše kod.');
+  setOStatus('Spajam se na popis igara…');
+  startLobby();
 })();
 
 for(const k of Object.keys(SFX)){
@@ -1364,6 +1401,7 @@ for(const k of Object.keys(SFX)){
 async function leaveOnline(){
   const n=NET;NET=null;
   $('o-start').hidden=true;$('o-host').disabled=!TRANSPORT;$('o-join').disabled=!TRANSPORT;
+  if(LOBBY&&n&&n.role==='host')LOBBY.presence({lobby:null}).catch(()=>{});
   if(n&&n.nr){try{await n.nr.leave();}catch(e){}}
 }
 
@@ -1383,10 +1421,11 @@ async function hostGame(){
     if(g&&g.presence.in){const i=g.presence.in;const x=clamp(+i.x||0,-1,1),y=clamp(+i.y||0,-1,1);NET.input={x,y};}
     if(!g)NET.input={x:0,y:0};
     if(G&&G.online&&was&&!g){pop(W/2,320,'Tata se odspojio','#ffb3c0');}
-    if(!G||!G.online)setOStatus(g?`Tata je spojen! Kod igre: ${code}. Pritisni „Kreni”.`:`Kod igre: ${code}. Na drugom uređaju upiši ovaj kod i pritisni „Pridruži se”.`);
+    if(!G||!G.online)setOStatus(g?`Tata je spojen! Kod igre: ${code}. Pritisni „Kreni”.`:`Igra je otvorena (kod ${code}). Na drugom uređaju pritisni „Pridruži se” pod „Otvorene igre”.`);
   },()=>{setOStatus('Veza je prekinuta.');});
   $('o-start').hidden=false;
-  setOStatus(`Kod igre: ${code}. Na drugom uređaju upiši ovaj kod i pritisni „Pridruži se”.`);
+  if(LOBBY)LOBBY.presence({lobby:{code}}).catch(()=>{});
+  setOStatus(`Igra je otvorena (kod ${code}). Na drugom uređaju pritisni „Pridruži se” pod „Otvorene igre”.`);
 }
 
 async function startOnline(){
@@ -1397,6 +1436,7 @@ async function startOnline(){
   newGame('both');
   G.players[0].scheme='both';G.players[1].scheme='remote';
   G.online=true;G.localIdx=0;G.gid=Math.floor(Math.random()*1e6);
+  if(LOBBY)LOBBY.presence({lobby:null}).catch(()=>{});
   show('play');$('btn-pause').textContent='Pauza';
   window.scrollTo({top:$('play').offsetTop-8});
 }
