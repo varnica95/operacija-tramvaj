@@ -71,6 +71,12 @@ kbd{font-family:var(--f-body);font-weight:900;background:#fff;border:2px solid v
 #play{display:flex;flex-direction:column;gap:12px;align-items:center}
 .stage{position:relative;width:min(100%,calc((100dvh - 110px) * 1.5625));aspect-ratio:1000/640;max-width:100%;border:4px solid var(--ink);border-radius:18px;overflow:hidden;box-shadow:0 8px 0 #07193a}
 .stage canvas{width:100%;height:100%;display:block;touch-action:none;cursor:crosshair}
+.stage.sized{aspect-ratio:auto;max-width:none}
+body.mobile-play #app{padding-block:4px 8px}
+body.mobile-play #play{gap:6px;margin-left:calc(-1 * max(16px, env(safe-area-inset-left,0px)));margin-right:calc(-1 * max(16px, env(safe-area-inset-right,0px)))}
+body.mobile-play .stage{border:0;border-radius:0;box-shadow:none}
+body.mobile-play .bar span{display:none}
+body.mobile-play .bar button{font-size:14px;padding:5px 12px}
 .bar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:center;font-size:14px;color:#c9d6ee}
 .bar button{font-size:16px;padding:6px 14px;box-shadow:0 3px 0 var(--ink)}
 .result{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px;margin-top:20px}
@@ -88,7 +94,7 @@ kbd{font-family:var(--f-body);font-weight:900;background:#fff;border:2px solid v
 .new{background:var(--led);border-radius:6px;padding:0 6px;margin-left:6px}
 @media (prefers-reduced-motion:reduce){button{transition:none}}
 </style>
-<style>body{margin:0}</style>
+<style>body{margin:0}[hidden]{display:none!important}</style>
 </head>
 <body>
 
@@ -118,7 +124,7 @@ kbd{font-family:var(--f-body);font-weight:900;background:#fff;border:2px solid v
       </div>
       <p class="o-status" id="o-status" role="status">Provjeravam vezu…</p>
     </div>
-    <p class="controls">Jedan igrač: <kbd>←</kbd><kbd>↑</kbd><kbd>→</kbd><kbd>↓</kbd> ili <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd>, a na mobitelu vuci prstom po ekranu. Dva igrača: mama na <kbd>WASD</kbd>, tata na strelicama. <kbd>P</kbd> pauza, <kbd>M</kbd> zvuk. Runda traje 100 sekundi. <span style="opacity:.7">Verzija 11</span></p>
+    <p class="controls">Jedan igrač: <kbd>←</kbd><kbd>↑</kbd><kbd>→</kbd><kbd>↓</kbd> ili <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd>, a na mobitelu vuci prstom po ekranu. Dva igrača: mama na <kbd>WASD</kbd>, tata na strelicama. <kbd>P</kbd> pauza, <kbd>M</kbd> zvuk. Runda traje 100 sekundi. <span style="opacity:.7">Verzija 12</span></p>
 
     <ul class="rules">
       <li><b>+100</b><span>za svako dijete koje doneseš do kolica (možeš nositi dvoje odjednom)</span></li>
@@ -143,7 +149,7 @@ kbd{font-family:var(--f-body);font-weight:900;background:#fff;border:2px solid v
 
   <section id="play" hidden>
     <div class="stage"><canvas id="c" width="1000" height="640" aria-label="Igra Operacija Tramvaj"></canvas></div>
-    <div class="bar">
+    <div class="bar" id="bar">
       <button id="btn-pause">Pauza</button>
       <button id="btn-mute">Zvuk: da</button>
       <button id="btn-quit">Izbornik</button>
@@ -484,7 +490,7 @@ function drawChatIcon(c,x,y){
 function drawChat(c){
   const ch=G.chat.show;if(!ch||ch.t<=0)return;
   c.globalAlpha=Math.min(1,ch.t*3,(4.5-ch.t)*5);
-  const x=W-350,y=72,w=338;
+  const w=Math.min(338,VW-12),x=Math.max(6,VW-w-12),y=VW<800?VH-60:72;
   c.font='800 14px Nunito, "Segoe UI", sans-serif';
   const txt=`${ch.from}: ${ch.msg}`;
   c.fillStyle='#dcf8c6';c.strokeStyle=INK;c.lineWidth=2;rr(c,x,y,w,52,12);c.fill();c.stroke();
@@ -640,9 +646,28 @@ let DPR=1,bgCanvas=null,G=null,raf=0,last=0;
 const KEYS={};
 let joy=null;
 
+let VW=W,VH=H,K=1;const CAM={x:0,y:0,snap:true};
+function layoutStage(){
+  const st=cv.parentElement;if($('play').hidden)return;
+  const small=window.innerWidth<760||window.innerHeight<520;
+  document.body.classList.toggle('mobile-play',small);
+  const bw=small?0:8;
+  const aw=$('play').clientWidth-bw;
+  const barH=$('bar').offsetHeight||40;
+  const ah=Math.max(180,window.innerHeight-barH-(small?22:64))-bw;
+  const fit=Math.min(aw/1000,ah/640);
+  if(!small||fit*1000>=700){K=fit;VW=W;VH=H;}
+  else{K=Math.min(Math.max(ah/640,aw/1000),aw/430);VW=Math.min(W,aw/K);VH=Math.min(H,ah/K);}
+  const cw=Math.floor(VW*K),ch=Math.floor(VH*K);
+  st.classList.add('sized');st.style.width=cw+'px';st.style.height=ch+'px';
+  DPR=Math.min(window.devicePixelRatio||1,2);
+  cv.width=Math.round(cw*DPR);cv.height=Math.round(ch*DPR);
+  CAM.snap=true;
+}
+addEventListener('resize',()=>layoutStage());
+addEventListener('orientationchange',()=>setTimeout(layoutStage,250));
 function setupCanvas(){
   DPR=Math.min(window.devicePixelRatio||1,2);
-  cv.width=W*DPR;cv.height=H*DPR;
   bgCanvas=document.createElement('canvas');bgCanvas.width=W*DPR;bgCanvas.height=H*DPR;
   const b=bgCanvas.getContext('2d');b.setTransform(DPR,0,0,DPR,0,0);drawBackground(b);
 }
@@ -1035,7 +1060,15 @@ function drawVelo(c,v){
 }
 
 function render(){
-  const c=ctx;c.setTransform(DPR,0,0,DPR,0,0);
+  const c=ctx;
+  const me=G.players[G.localIdx||0];
+  if(VW<W||VH<H){
+    const tx=clamp(me.x-VW/2,0,W-VW),ty=clamp(me.y-50-VH/2,0,H-VH);
+    if(CAM.snap){CAM.x=tx;CAM.y=ty;CAM.snap=false;}else{CAM.x+=(tx-CAM.x)*.15;CAM.y+=(ty-CAM.y)*.15;}
+  }else{CAM.x=0;CAM.y=0;}
+  const S=DPR*K;
+  c.setTransform(1,0,0,1,0,0);c.fillStyle='#0f2f63';c.fillRect(0,0,cv.width,cv.height);
+  c.setTransform(S,0,0,S,-CAM.x*S,-CAM.y*S);
   const sh=G.shake;c.save();if(sh>0)c.translate(rand(-sh,sh)*.4,rand(-sh,sh)*.4);
   c.drawImage(bgCanvas,0,0,W,H);
   const list=[];
@@ -1079,44 +1112,55 @@ function render(){
     c.lineWidth=5;c.strokeStyle=INK;c.strokeText(p.text,p.x,p.y);c.fillStyle=p.col;c.fillText(p.text,p.x,p.y);c.globalAlpha=1;
   }
   c.restore();
+  c.setTransform(DPR*K,0,0,DPR*K,0,0);
   drawHUD(c);
   drawChat(c);
   if(joy&&joy.active){
-    const r=cv.getBoundingClientRect(),k=W/r.width;
+    const r=cv.getBoundingClientRect(),k=1/K;
     const ox=(joy.ox-r.left)*k,oy=(joy.oy-r.top)*k,cx=(joy.cx-r.left)*k,cy=(joy.cy-r.top)*k;
     c.fillStyle='rgba(255,255,255,.18)';c.beginPath();c.arc(ox,oy,50,0,Math.PI*2);c.fill();
     const dx=cx-ox,dy=cy-oy,m=Math.hypot(dx,dy),mm=Math.min(m,50);
     c.fillStyle='rgba(255,255,255,.55)';c.beginPath();c.arc(ox+(m?dx/m*mm:0),oy+(m?dy/m*mm:0),22,0,Math.PI*2);c.fill();
   }
   if(G.paused){
-    c.fillStyle='rgba(15,47,99,.7)';c.fillRect(0,0,W,H);
-    c.fillStyle='#fff';c.font='60px "Lilita One", sans-serif';c.textAlign='center';c.fillText('PAUZA',W/2,H/2);
-    c.font='800 18px Nunito, sans-serif';c.fillText('Djeca spavaju (navodno). Pritisni P ili Pauza za nastavak.',W/2,H/2+40);
+    c.fillStyle='rgba(15,47,99,.7)';c.fillRect(0,0,VW,VH);
+    c.fillStyle='#fff';c.font='60px "Lilita One", sans-serif';c.textAlign='center';c.fillText('PAUZA',VW/2,VH/2);
+    c.font='800 16px Nunito, sans-serif';c.fillText('Djeca spavaju (navodno).',VW/2,VH/2+36);c.fillText('Pritisni P ili Pauza za nastavak.',VW/2,VH/2+58);
   }
 }
 
 function drawHUD(c){
-  c.fillStyle='rgba(15,47,99,.92)';c.strokeStyle=INK;c.lineWidth=2;rr(c,10,8,290,56,12);c.fill();c.stroke();
+  const compact=VW<800;
   const who=G.mode==='both'?'MAMA + TATA':G.mode==='mama'?'MAMA LUCIJA':'TATA IVAN';
-  c.textAlign='left';c.fillStyle='#fff';c.font='800 13px Nunito, sans-serif';c.fillText(who,24,28);
-  c.font='28px "Lilita One", sans-serif';c.fillStyle='#ffd84a';c.fillText(Math.floor(G.score).toLocaleString('hr-HR'),24,57);
+  const lw=compact?236:290,lh=compact?52:56;
+  c.fillStyle='rgba(15,47,99,.92)';c.strokeStyle=INK;c.lineWidth=2;rr(c,8,8,lw,lh,12);c.fill();c.stroke();
+  c.textAlign='left';c.fillStyle='#fff';c.font='800 12px Nunito, sans-serif';c.fillText(who,20,26);
+  c.font=(compact?'26px':'28px')+' "Lilita One", sans-serif';c.fillStyle='#ffd84a';c.fillText(Math.floor(G.score).toLocaleString('hr-HR'),20,54);
   G.babies.forEach((b,i)=>{
-    const x=200+i*50;ell(c,x,36,16,16,b.color,true);
-    c.fillStyle=INK;c.font='16px "Lilita One", sans-serif';c.textAlign='center';c.fillText(b.name[0],x,42);
+    const x=(compact?146:200)+i*(compact?58:50);ell(c,x,32,15,15,b.color,true);
+    c.fillStyle=INK;c.font='15px "Lilita One", sans-serif';c.textAlign='center';c.fillText(b.name[0],x,38);
     const st=b.state==='stroller'?'kolica':b.state==='carried'?'u rukama':b.state==='held'?'kod frenda':'slobod'+gx(b,'an','na');
-    c.fillStyle=b.state==='stroller'||b.state==='carried'?'#8fe0c0':'#ffb3c0';c.font='800 9px Nunito, sans-serif';c.fillText(st,x,62);
+    c.fillStyle=b.state==='stroller'||b.state==='carried'?'#8fe0c0':'#ffb3c0';c.font='800 9px Nunito, sans-serif';c.fillText(st,x,57);
   });
-  c.fillStyle='rgba(15,47,99,.92)';c.strokeStyle=INK;c.lineWidth=2;rr(c,W-250,8,240,56,12);c.fill();c.stroke();
-  c.fillStyle='#fff';c.font='800 13px Nunito, sans-serif';c.textAlign='left';c.fillText('ŽIVCI',W-236,28);
-  c.textAlign='right';c.fillText(Math.ceil(G.nerves)+' / 100',W-24,28);
+  const tl=Math.ceil(G.time),low=G.time<=10,tw=compact?96:140,tx=compact?VW-8-tw:VW/2-tw/2;
+  c.fillStyle='#111';c.strokeStyle=INK;c.lineWidth=2;rr(c,tx,8,tw,compact?44:46,10);c.fill();c.stroke();
+  c.fillStyle=low&&Math.floor(NOW*4)%2?'#ff4d4d':'#ffa31a';c.font=(compact?'36px':'40px')+' VT323, monospace';c.textAlign='center';
+  c.fillText(`${Math.floor(tl/60)}:${String(tl%60).padStart(2,'0')}`,tx+tw/2,compact?42:44);
   const pct=G.nerves/100,col=pct>.5?'#3fb68b':pct>.25?'#ffa31a':'#e2445c';
-  c.fillStyle='#0b2147';rr(c,W-236,36,212,16,8);c.fill();
-  if(pct>0){c.fillStyle=col;rr(c,W-236,36,Math.max(16,212*pct),16,8);c.fill();}
-  c.strokeStyle=INK;rr(c,W-236,36,212,16,8);c.stroke();
-  const tl=Math.ceil(G.time),low=G.time<=10;
-  c.fillStyle='#111';c.strokeStyle=INK;c.lineWidth=2;rr(c,W/2-70,8,140,46,10);c.fill();c.stroke();
-  c.fillStyle=low&&Math.floor(NOW*4)%2?'#ff4d4d':'#ffa31a';c.font='40px VT323, monospace';c.textAlign='center';
-  c.fillText(`${Math.floor(tl/60)}:${String(tl%60).padStart(2,'0')}`,W/2,44);
+  let nx,ny,nw,nh;
+  if(compact){nx=8;ny=66;nw=VW-16;nh=20;
+    c.fillStyle='#0b2147';c.strokeStyle=INK;c.lineWidth=2;rr(c,nx,ny,nw,nh,10);c.fill();
+    if(pct>0){c.fillStyle=col;rr(c,nx,ny,Math.max(20,nw*pct),nh,10);c.fill();}
+    c.strokeStyle=INK;rr(c,nx,ny,nw,nh,10);c.stroke();
+    c.fillStyle='#fff';c.font='900 12px Nunito, sans-serif';c.textAlign='left';c.fillText('ŽIVCI '+Math.ceil(G.nerves)+' / 100',nx+10,ny+15);
+  }else{
+    c.fillStyle='rgba(15,47,99,.92)';c.strokeStyle=INK;c.lineWidth=2;rr(c,VW-250,8,240,56,12);c.fill();c.stroke();
+    c.fillStyle='#fff';c.font='800 13px Nunito, sans-serif';c.textAlign='left';c.fillText('ŽIVCI',VW-236,28);
+    c.textAlign='right';c.fillText(Math.ceil(G.nerves)+' / 100',VW-24,28);
+    c.fillStyle='#0b2147';rr(c,VW-236,36,212,16,8);c.fill();
+    if(pct>0){c.fillStyle=col;rr(c,VW-236,36,Math.max(16,212*pct),16,8);c.fill();}
+    c.strokeStyle=INK;rr(c,VW-236,36,212,16,8);c.stroke();
+  }
   const banners=[];
   for(const p of G.players){
     if(p.super>0)banners.push([`SUPER ${p.kind==='mama'?'MAMA':'TATA'}! ${Math.ceil(p.super)} s`,'#ff8a3d']);
@@ -1124,11 +1168,12 @@ function drawHUD(c){
   }
   if(G.hack>0)banners.push([`ZET HAKIRAN · nema tramvaja ${Math.ceil(G.hack)} s`,'#1f7756']);
   if(G.npc&&G.npc.state==='help')banners.push([`${G.npc.p.kind==='tata'?'Tata':'Mama'} pomaže ${Math.max(0,Math.ceil(G.npc.helpT))} s`,'#5b6785']);
-  if(G.vegeta&&!banners.length)banners.push(['Vegeta na ulici! Pojedi je za superbrzinu!','#c9302c']);
+  if(G.vegeta&&!banners.length)banners.push([compact?'Vegeta na ulici! Pojedi je!':'Vegeta na ulici! Pojedi je za superbrzinu!','#c9302c']);
+  const by=compact?92:58;
   banners.slice(0,2).forEach(([t,col],i)=>{
     c.font='15px "Lilita One", sans-serif';const w=c.measureText(t).width+28;
-    c.fillStyle=col;c.strokeStyle=INK;c.lineWidth=2;rr(c,W/2-w/2,58+i*30,w,26,13);c.fill();c.stroke();
-    c.fillStyle='#fff';c.textAlign='center';c.fillText(t,W/2,76+i*30);
+    c.fillStyle=col;c.strokeStyle=INK;c.lineWidth=2;rr(c,VW/2-w/2,by+i*30,w,26,13);c.fill();c.stroke();
+    c.fillStyle='#fff';c.textAlign='center';c.fillText(t,VW/2,by+18+i*30);
   });
 }
 
@@ -1158,7 +1203,7 @@ function rank(s){
 }
 
 let lastMode='mama';
-function show(id){['menu','play','over'].forEach(s=>$(s).hidden=s!==id);}
+function show(id){['menu','play','over'].forEach(s=>$(s).hidden=s!==id);if(id==='play'){CAM.snap=true;layoutStage();requestAnimationFrame(layoutStage);}else document.body.classList.remove('mobile-play');}
 
 async function start(mode){
   initAudio();lastMode=mode;
