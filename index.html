@@ -145,7 +145,7 @@ body.mobile-play .bar button{font-size:14px;padding:5px 12px}
       </div>
       <p class="o-status" id="o-status" role="status">Provjeravam vezu…</p>
     </div>
-    <p class="controls">Jedan igrač: <kbd>←</kbd><kbd>↑</kbd><kbd>→</kbd><kbd>↓</kbd> ili <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd>, a na mobitelu vuci prstom po ekranu. Dva igrača: mama na <kbd>WASD</kbd>, tata na strelicama. <kbd>P</kbd> pauza, <kbd>M</kbd> zvuk. Runda traje 100 sekundi. <span style="opacity:.7">Verzija 22</span></p>
+    <p class="controls">Jedan igrač: <kbd>←</kbd><kbd>↑</kbd><kbd>→</kbd><kbd>↓</kbd> ili <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd>, a na mobitelu vuci prstom po ekranu. Dva igrača: mama na <kbd>WASD</kbd>, tata na strelicama. <kbd>P</kbd> pauza, <kbd>M</kbd> zvuk. Runda traje 100 sekundi. <span style="opacity:.7">Verzija 23</span></p>
 
     <ul class="rules" data-for-lv="1">
       <li><b>+100</b><span>za svako dijete koje doneseš do kolica (možeš nositi dvoje odjednom)</span></li>
@@ -233,7 +233,7 @@ const LEVELS={
     mamaLook:{dress:'#2a9d8f',hair:'#c9953f',glasses:true,shoes:'#1d5c55'},
     tataLook:{shirt:'#3d405b',hair:'#2a1a10',camera:true,pants:'#22252e'}}
 };
-LEVELS[2].pews=[205,263,321,379,437].flatMap(y=>[{x:90,y,w:330,h:22},{x:580,y,w:330,h:22}]);
+LEVELS[2].pews=[230,330,430].flatMap(y=>[{x:120,y,w:290,h:22},{x:590,y,w:290,h:22}]);
 let LV=1;try{if(localStorage.getItem('opTramvaj.level')==='2')LV=2;}catch(e){}
 const LVL=()=>LEVELS[LV];
 let STROLLER=LEVELS[1].stroller,OBST=LEVELS[1].obst,PEWS=[];
