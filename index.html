@@ -145,7 +145,7 @@ body.mobile-play .bar button{font-size:14px;padding:5px 12px}
       </div>
       <p class="o-status" id="o-status" role="status">Provjeravam vezu…</p>
     </div>
-    <p class="controls">Jedan igrač: <kbd>←</kbd><kbd>↑</kbd><kbd>→</kbd><kbd>↓</kbd> ili <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd>, a na mobitelu vuci prstom po ekranu. Dva igrača: mama na <kbd>WASD</kbd>, tata na strelicama. <kbd>P</kbd> pauza, <kbd>M</kbd> zvuk. Runda traje 100 sekundi. <span style="opacity:.7">Verzija 23</span></p>
+    <p class="controls">Jedan igrač: <kbd>←</kbd><kbd>↑</kbd><kbd>→</kbd><kbd>↓</kbd> ili <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd>, a na mobitelu vuci prstom po ekranu. Dva igrača: mama na <kbd>WASD</kbd>, tata na strelicama. <kbd>P</kbd> pauza, <kbd>M</kbd> zvuk. Runda traje 100 sekundi. <span style="opacity:.7">Verzija 24</span></p>
 
     <ul class="rules" data-for-lv="1">
       <li><b>+100</b><span>za svako dijete koje doneseš do kolica (možeš nositi dvoje odjednom)</span></li>
@@ -233,7 +233,7 @@ const LEVELS={
     mamaLook:{dress:'#2a9d8f',hair:'#c9953f',glasses:true,shoes:'#1d5c55'},
     tataLook:{shirt:'#3d405b',hair:'#2a1a10',camera:true,pants:'#22252e'}}
 };
-LEVELS[2].pews=[230,330,430].flatMap(y=>[{x:120,y,w:290,h:22},{x:590,y,w:290,h:22}]);
+LEVELS[2].pews=[{x:130,y:260,w:270,h:22},{x:600,y:260,w:270,h:22},{x:130,y:400,w:270,h:22}];
 let LV=1;try{if(localStorage.getItem('opTramvaj.level')==='2')LV=2;}catch(e){}
 const LVL=()=>LEVELS[LV];
 let STROLLER=LEVELS[1].stroller,OBST=LEVELS[1].obst,PEWS=[];
@@ -949,8 +949,8 @@ function newGame(mode){
     npc:npcKind?{p:{...makeParent(npcKind,'none',true),x:1060,y:LVL().npcY},state:'away',timer:rand(10,14),helpT:0,idleCd:2}:null,
     babies:LVL().kids.map((k,sl)=>makeBaby(k,sl)),trams:[],items:[],pops:[],vegeta:null,velo:null,hack:0,
     friend:LV===1?{x:FRIEND.x,y:FRIEND.y,holding:null,bubble:null,cd:3,wave:0}:{x:-9999,y:-9999,holding:null,bubble:null,cd:1e9,wave:0},
-    baka:{state:'away',timer:rand(18,24),x:-40,y:600,moving:false,bubble:null,wave:0},
-    marin:{state:'away',timer:rand(26,32),x:-40,y:458,moving:false,bubble:null,wave:0,idleCd:2},
+    baka:{state:'away',timer:LV===1?rand(18,24):1e9,x:-40,y:600,moving:false,bubble:null,wave:0},
+    marin:{state:'away',timer:LV===1?rand(26,32):1e9,x:-40,y:458,moving:false,bubble:null,wave:0,idleCd:2},
     dida:{x:665,y:342,cd:LV===1?8:1e9,bubble:null,idleCd:LV===1?4:1e9,inGame:LV===1},
     chat:{cd:rand(9,13),show:null},
     seka:{state:'away',timer:rand(14,18),x:500,y:660,carry:null,bubble:null,moving:false,huntT:0,talkCd:2},
