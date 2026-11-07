@@ -1,0 +1,1436 @@
+<!doctype html>
+<html lang="hr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Operacija Tramvaj</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lilita+One&family=Nunito:wght@600;800;900&family=VT323&display=swap">
+<style>
+/* Layout: one column; menu card -> game stage (canvas) -> end card. Deliberately single-theme: a ZET-blue night world. */
+:root{
+  --night:#0f2f63;      /* ZET duboka plava */
+  --zet:#1b4f9c;        /* tramvaj */
+  --cream:#fff6e3;      /* papir / karta */
+  --ink:#14213d;
+  --led:#ffa31a;        /* LED ploča na tramvaju */
+  --mama:#e2445c;
+  --brush:#3fb68b;
+  --muted:#5b6785;
+  --f-display:"Lilita One","Arial Rounded MT Bold","Trebuchet MS",sans-serif;
+  --f-body:"Nunito","Segoe UI",system-ui,sans-serif;
+  --f-led:"VT323","Courier New",monospace;
+  color-scheme:dark;
+}
+[hidden]{display:none!important}
+html{background:var(--night)}
+html,body{min-height:100%}
+body{
+  background:var(--night);
+  background-attachment:fixed;background-image:radial-gradient(circle at 20% 0%,#1d4a8f 0,transparent 55%),radial-gradient(circle at 90% 100%,#163d78 0,transparent 50%);
+  color:var(--cream);font-family:var(--f-body);font-weight:600;
+  padding-left:max(16px,env(safe-area-inset-left,0px));
+  padding-right:max(16px,env(safe-area-inset-right,0px));
+}
+#app{max-width:1000px;margin:0 auto;padding-block:20px 32px}
+.led{display:inline-block;background:#111;color:var(--led);font-family:var(--f-led);font-size:22px;letter-spacing:.08em;padding:2px 12px 0;border-radius:6px;border:2px solid #000;text-shadow:0 0 6px rgba(255,163,26,.7);text-transform:uppercase}
+.panel{background:var(--cream);color:var(--ink);border:4px solid var(--ink);border-radius:22px;box-shadow:0 8px 0 var(--ink);padding:28px clamp(18px,4vw,40px)}
+h1,h2,h3{font-family:var(--f-display);font-weight:400;text-wrap:balance;margin:0;letter-spacing:.01em}
+h1{font-size:clamp(40px,8vw,74px);line-height:.95;color:var(--zet);margin-top:14px}
+h1 span{color:var(--mama)}
+.lede{font-size:clamp(16px,2.2vw,19px);max-width:62ch;line-height:1.5;margin:14px 0 0}
+.cast{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px;margin-top:24px}
+.who{display:flex;flex-direction:column;gap:6px;background:#fff;border:3px solid var(--ink);border-radius:16px;padding:12px;min-width:0}
+.who canvas{width:100%;height:110px;display:block;background:#e7f1fb;border-radius:10px}
+.who h3{font-size:20px;color:var(--ink)}
+.who p{margin:0;font-size:14px;line-height:1.4;color:var(--muted)}
+.rules{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px;margin:24px 0 0;padding:0;list-style:none}
+.rules li{display:flex;gap:10px;align-items:baseline;font-size:15px;line-height:1.35;min-width:0}
+.rules b{font-family:var(--f-display);font-weight:400;font-size:18px;white-space:nowrap;color:var(--zet)}
+.rules b.bad{color:var(--mama)}
+.actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:26px}
+button{font-family:var(--f-display);font-size:21px;border:3px solid var(--ink);border-radius:14px;padding:12px 20px;cursor:pointer;color:var(--ink);background:#fff;box-shadow:0 5px 0 var(--ink);transition:transform .08s,box-shadow .08s}
+button:hover{transform:translateY(-2px);box-shadow:0 7px 0 var(--ink)}
+button:active{transform:translateY(4px);box-shadow:0 1px 0 var(--ink)}
+button:focus-visible{outline:4px solid var(--led);outline-offset:3px}
+.b-mama{background:#ffb3c0}.b-tata{background:#a9d4f5}.b-two{background:var(--led)}
+.online{margin-top:22px;border:3px dashed var(--zet);border-radius:16px;padding:16px;display:flex;flex-direction:column;gap:10px;background:#eaf2fd}
+.online h2{font-size:26px;color:var(--zet)}
+.online p{margin:0;font-size:15px;line-height:1.45;max-width:62ch}
+.o-row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.o-row button{font-size:18px;padding:10px 16px}
+#o-code{font-family:var(--f-led);font-size:30px;width:5.2ch;padding:4px 10px;border:3px solid var(--ink);border-radius:10px;background:#111;color:var(--led);letter-spacing:.15em}
+#o-code:focus-visible{outline:4px solid var(--led);outline-offset:2px}
+button:disabled{opacity:.5;cursor:not-allowed;transform:none}
+.o-status{font-weight:800;color:var(--ink)}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+.controls{margin:14px 0 0;font-size:14px;line-height:2;color:var(--muted)}
+kbd{font-family:var(--f-body);font-weight:900;background:#fff;border:2px solid var(--ink);border-bottom-width:4px;border-radius:6px;padding:0 6px;font-size:13px}
+#play{display:flex;flex-direction:column;gap:12px;align-items:center}
+.stage{position:relative;width:min(100%,calc((100dvh - 110px) * 1.5625));aspect-ratio:1000/640;max-width:100%;border:4px solid var(--ink);border-radius:18px;overflow:hidden;box-shadow:0 8px 0 #07193a}
+.stage canvas{width:100%;height:100%;display:block;touch-action:none;cursor:crosshair}
+.bar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:center;font-size:14px;color:#c9d6ee}
+.bar button{font-size:16px;padding:6px 14px;box-shadow:0 3px 0 var(--ink)}
+.result{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px;margin-top:20px}
+.card{background:#fff;border:3px solid var(--ink);border-radius:16px;padding:14px 16px;min-width:0}
+.card h3{font-size:24px}
+.card .pts{font-family:var(--f-display);font-size:44px;line-height:1;color:var(--zet);font-variant-numeric:tabular-nums}
+.card dl{display:grid;grid-template-columns:1fr auto;gap:4px 12px;margin:10px 0 0;font-size:14px}
+.card dd{margin:0;font-weight:900;font-variant-numeric:tabular-nums;text-align:right}
+.quote{font-size:17px;line-height:1.5;margin:14px 0 0;max-width:62ch}
+.wa{background:#dcf8c6;border:3px solid var(--ink);border-radius:16px 16px 16px 4px;padding:12px 16px;margin-top:18px;max-width:560px}
+.wa-h{font-weight:900;color:#128c4a;font-size:15px;margin-bottom:6px}
+.wa p{margin:4px 0;font-size:15px;line-height:1.4}
+.quote em{font-style:normal;color:var(--mama);font-weight:900}
+.best{margin-top:14px;font-weight:800}
+.new{background:var(--led);border-radius:6px;padding:0 6px;margin-left:6px}
+@media (prefers-reduced-motion:reduce){button{transition:none}}
+</style>
+<style>body{margin:0}</style>
+</head>
+<body>
+
+
+<main id="app">
+  <section id="menu" class="panel">
+    <span class="led">6 · Glavni kolodvor</span>
+    <h1>Operacija Tramvaj</h1>
+    <p class="lede">Toma i Elena imaju tri životna cilja: pipnuti što više tramvaja, završiti u naručju prijatelja beskućnika s Autobusnog kolodvora i pojesti što više čokolade. Ti si mama Lucija ili tata Ivan. Hvataj ih i vraćaj u kolica prije nego što ti puknu živci.</p>
+
+    <div class="actions">
+      <button class="b-mama" id="p-mama">Igraj kao mama Lucija</button>
+      <button class="b-tata" id="p-tata">Igraj kao tata Ivan</button>
+      <button class="b-two" id="p-two">Mama + tata (2 igrača)</button>
+    </div>
+    <div class="online">
+      <h2>Na dva uređaja</h2>
+      <p>Mama igra na jednom uređaju, a tata na drugom (mobitel, tablet ili računalo). Oba uređaja trebaju imati otvorenu ovu igru na claude.ai.</p>
+      <div class="o-row">
+        <button class="b-mama" id="o-host" disabled>Napravi igru (ja sam mama)</button>
+        <button class="b-two" id="o-start" hidden>Kreni!</button>
+      </div>
+      <div class="o-row">
+        <label class="sr" for="o-code">Kod igre</label>
+        <input id="o-code" inputmode="numeric" pattern="[0-9]*" maxlength="4" placeholder="Kod" autocomplete="off">
+        <button class="b-tata" id="o-join" disabled>Pridruži se (ja sam tata)</button>
+      </div>
+      <p class="o-status" id="o-status" role="status">Provjeravam vezu…</p>
+    </div>
+    <p class="controls">Jedan igrač: <kbd>←</kbd><kbd>↑</kbd><kbd>→</kbd><kbd>↓</kbd> ili <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd>, a na mobitelu vuci prstom po ekranu. Dva igrača: mama na <kbd>WASD</kbd>, tata na strelicama. <kbd>P</kbd> pauza, <kbd>M</kbd> zvuk. Runda traje 100 sekundi.</p>
+
+    <ul class="rules">
+      <li><b>+100</b><span>za svako dijete koje doneseš do kolica (možeš nositi dvoje odjednom)</span></li>
+      <li><b>+15</b><span>za svaku čokoladu koju oduzmeš</span></li>
+      <li><b class="bad">Živci</b><span>padaju kad beba pipne tramvaj, pojede čokoladu ili je prijatelj drži. Na nuli je kraj igre.</span></li>
+      <li><b>Vegeta</b><span>7 sekundi superbrzine</span></li>
+      <li><b>Velo</b><span>tata postaje turbo tata. Ako ga mama nađe, dobije +30.</span></li>
+    </ul>
+
+    <div class="cast" id="cast">
+      <div class="who"><canvas data-p="mama" width="340" height="220"></canvas><h3>Mama Lucija</h3><p>Možeš biti ti. Vidi sve, čuje sve i ima neograničenu zalihu vlažnih maramica i strpljenja. Kad pojede vegetu, postaje Super Mama.</p></div>
+      <div class="who"><canvas data-p="tata" width="340" height="220"></canvas><h3>Tata Ivan</h3><p>Možeš biti i on. Kad nađe svoj Velo, odjednom je jako brz. Ako igraš kao mama, svako malo dođe pomoći, ali ponekad samo traži Velo.</p></div>
+      <div class="who"><canvas data-p="toma" width="340" height="220"></canvas><h3>Toma</h3><p>Specijalist za tramvaje i dinosaure. Brz, tih i uvijek malo ljepljiv. Najviše ga vuku tramvaji, a sve je njegovo, pa Eleni zna oteti čokolade.</p></div>
+      <div class="who"><canvas data-p="elena" width="340" height="220"></canvas><h3>Elena</h3><p>Kolekcionarka čokolada i voli ponekad pogledati Baby Shark. Ima viziju i ne dijeli. Kad joj Toma otme čokoladu, rasplače se i stoji na mjestu, pa je tad lako uhvatiti.</p></div>
+      <div class="who"><canvas data-p="frend" width="340" height="220"></canvas><h3>Prijatelj beskućnik</h3><p>Najbolji frend s Autobusnog. Bebe trče k njemu da ih digne u zrak. Dok ih drži, padaju ti živci, pa ih otmi iz njegovih ruku.</p></div>
+      <div class="who"><canvas data-p="baka" width="340" height="220"></canvas><h3>Baka Suzana</h3><p>Farmaceutska tehničarka. Svaku bebu zove „bakino sunce” i daje joj čokoladu. Beba koju baka dotakne šest sekundi je pod bakinom zaštitom.</p></div>
+      <div class="who"><canvas data-p="dida" width="340" height="220"></canvas><h3>Dida Ivica</h3><p>Veterinar koji stalno priča o hrani, a najviše o čobancu. Ako mu bebe priđu, pozove Dida Express. Stigni prvi pa ga nagovori na čobanac umjesto tramvaja.</p></div>
+      <div class="who"><canvas data-p="marin" width="340" height="220"></canvas><h3>Strika Marin</h3><p>Ćelav, bradat i programer (to će ti sam reći). Voli konzumke, odnosno blagajnice u Konzumu. Pipni ga i hakira ZET: šest sekundi nema tramvaja.</p></div>
+      <div class="who"><canvas data-p="pleme" width="340" height="220"></canvas><h3>Pleme Varnica</h3><p>Obiteljska grupa koja nikad ne spava. Kad stigne poruka, moraš je pročitati, pa si nakratko upola sporiji.</p></div>
+    </div>
+  </section>
+
+  <section id="play" hidden>
+    <div class="stage"><canvas id="c" width="1000" height="640" aria-label="Igra Operacija Tramvaj"></canvas></div>
+    <div class="bar">
+      <button id="btn-pause">Pauza</button>
+      <button id="btn-mute">Zvuk: da</button>
+      <button id="btn-quit">Izbornik</button>
+      <span>Na mobitelu okreni ekran vodoravno.</span>
+    </div>
+  </section>
+
+  <section id="over" class="panel" hidden></section>
+</main>
+
+<script>
+(() => {
+'use strict';
+/* ====== POSTAVKE (imena se lako mijenjaju ovdje) ====== */
+const CFG = { mama:'Lucija', tata:'Ivan', baka:'Suzana', dida:'Ivica', grupa:'Pleme Varnica', friend:'Prijatelj', time:100 };
+const BABIES = [
+  { name:'Toma',   g:'m', color:'#3fb68b', hair:'#7a4a22' },
+  { name:'Elena', g:'f', color:'#ff8a3d', hair:'#b8732e' }
+];
+
+const W=1000, H=640, TRACKS=[150,235];
+const INK='#14213d', SKIN='#f6c9a8', ZET='#1b4f9c';
+const STROLLER={x:500,y:604}, FRIEND={x:200,y:492};
+const OBST=[{x:0,y:250,w:300,h:185},{x:845,y:250,w:155,h:150}];
+const DEST=[[6,'ČRNOMEREC'],[6,'SOPOT'],[11,'DUBEC'],[12,'DUBRAVA'],[13,'ŽITNJAK'],[14,'MIHALJEVAC'],[17,'BORONGAJ'],[4,'SAVSKI MOST'],[9,'LJUBLJANICA'],[2,'ČRNOMEREC']];
+
+const rand=(a,b)=>a+Math.random()*(b-a);
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const dist=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
+const gx=(b,m,f)=>b.g==='m'?m:f;
+let NOW=0;
+
+/* ====== DRAW HELPERS ====== */
+function rr(c,x,y,w,h,r){c.beginPath();c.moveTo(x+r,y);c.arcTo(x+w,y,x+w,y+h,r);c.arcTo(x+w,y+h,x,y+h,r);c.arcTo(x,y+h,x,y,r);c.arcTo(x,y,x+w,y,r);c.closePath();}
+function ell(c,x,y,rx,ry,fill,stroke){c.beginPath();c.ellipse(x,y,rx,ry,0,0,Math.PI*2);c.fillStyle=fill;c.fill();if(stroke){c.strokeStyle=INK;c.lineWidth=2;c.stroke();}}
+function line(c,x1,y1,x2,y2,col,w){c.strokeStyle=col;c.lineWidth=w;c.lineCap='round';c.beginPath();c.moveTo(x1,y1);c.lineTo(x2,y2);c.stroke();}
+
+function brush(c,x,y,ang,len,gold){
+  c.save();c.translate(x,y);c.rotate(ang);
+  const hl=len*.6, hr=len*.17;
+  c.fillStyle=gold?'#e0ae12':'#f7f7f7';c.strokeStyle=INK;c.lineWidth=1.5;
+  rr(c,0,-2.5,hl+2,5,2.5);c.fill();c.stroke();
+  c.beginPath();c.ellipse(hl+(len-hl)/2,0,(len-hl)/2+1,hr,0,0,Math.PI*2);
+  c.fillStyle=gold?'#ffd84a':'#3fb68b';c.fill();c.stroke();
+  c.strokeStyle=gold?'#a77a00':'#1f7756';c.lineWidth=1;
+  for(let k=0;k<5;k++){const xx=hl+3+k*((len-hl-5)/4);c.beginPath();c.moveTo(xx,-hr+1);c.lineTo(xx,hr-1);c.stroke();}
+  c.restore();
+}
+
+function choc(c,x,y,ang,len,gold){
+  c.save();c.translate(x,y);c.rotate(ang);
+  const w=len*.42,cl=len*.55;
+  c.fillStyle='#6b3a1e';c.strokeStyle=INK;c.lineWidth=1.5;rr(c,0,-w/2,cl,w,2);c.fill();c.stroke();
+  c.strokeStyle='#4a2512';c.lineWidth=1;
+  for(let k=1;k<3;k++){c.beginPath();c.moveTo(k*cl/3,-w/2+1);c.lineTo(k*cl/3,w/2-1);c.stroke();}
+  c.beginPath();c.moveTo(1,0);c.lineTo(cl-1,0);c.stroke();
+  c.fillStyle=gold?'#e8b923':'#d93a4a';c.strokeStyle=INK;c.lineWidth=1.5;rr(c,cl-3,-w/2-1.5,len-cl+3,w+3,2);c.fill();c.stroke();
+  c.fillStyle=gold?'#fff3b0':'#dfe3ea';c.fillRect(cl-3,-w/2-1,3,w+2);
+  c.fillStyle='rgba(255,255,255,.85)';c.fillRect(cl+4,-2,len-cl-8,4);
+  c.restore();
+}
+
+function drawBaby(c,b,x,y,o={}){
+  const bob=b.moving&&!o.still?Math.abs(Math.sin(NOW*16+(b.phase||0)))*4:0;
+  const yy=y-bob, d=(b.dir||1)*2;
+  if(!o.noShadow) ell(c,x,y+1,15,5,'rgba(0,0,0,.18)');
+  const n=b.brushes||0;
+  for(let i=0;i<n;i++){const a=-Math.PI/2+(n===1?.45:(-.85+1.7*i/(n-1)));choc(c,x,yy-24,a,30,false);}
+  ell(c,x-6,yy-2,5,4,SKIN,true);ell(c,x+6,yy-2,5,4,SKIN,true);
+  const up=(b.happy>0)||o.armsUp;
+  const wig=o.flail?Math.sin(NOW*30)*8:0;
+  line(c,x-10,yy-20,x-18,up?yy-38+wig:yy-12,INK,8);line(c,x+10,yy-20,x+18,up?yy-38-wig:yy-12,INK,8);
+  line(c,x-10,yy-20,x-18,up?yy-38+wig:yy-12,b.color,5);line(c,x+10,yy-20,x+18,up?yy-38-wig:yy-12,b.color,5);
+  ell(c,x,yy-16,13,14,b.color,true);
+  c.beginPath();c.ellipse(x,yy-8,12,7,0,0,Math.PI*2);c.fillStyle='#fff';c.fill();c.strokeStyle=INK;c.lineWidth=1.5;c.stroke();
+  ell(c,x,yy-40,15,15,SKIN,true);
+  if(b.g==='m'){c.strokeStyle=b.hair;c.lineWidth=3.5;c.lineCap='round';c.beginPath();c.arc(x+1,yy-57,5,Math.PI*.8,Math.PI*2.4);c.stroke();}
+  else{ell(c,x-15,yy-49,5,6,b.hair,true);ell(c,x+15,yy-49,5,6,b.hair,true);
+    c.fillStyle='#ff5ea8';c.strokeStyle=INK;c.lineWidth=1.5;c.beginPath();c.moveTo(x,yy-55);c.lineTo(x-9,yy-61);c.lineTo(x-9,yy-49);c.closePath();c.fill();c.stroke();
+    c.beginPath();c.moveTo(x,yy-55);c.lineTo(x+9,yy-61);c.lineTo(x+9,yy-49);c.closePath();c.fill();c.stroke();ell(c,x,yy-55,3,3,'#ff5ea8',true);}
+  if(o.sad){line(c,x-7+d,yy-42,x-3+d,yy-40,INK,2);line(c,x+7+d,yy-42,x+3+d,yy-40,INK,2);}
+  else{ell(c,x-5+d,yy-42,2.3,2.9,INK);ell(c,x+5+d,yy-42,2.3,2.9,INK);}
+  ell(c,x-9,yy-35,3.2,2,'rgba(255,110,110,.5)');ell(c,x+9,yy-35,3.2,2,'rgba(255,110,110,.5)');
+  if(up&&!o.sad) ell(c,x+d,yy-33,4.5,4,'#8a2a2a',true);
+  else {ell(c,x+d,yy-33,5,3.5,'#ff7eb6',true);ell(c,x+d,yy-33,1.6,1.6,'#fff');}
+}
+
+function drawMama(c,m,o={}){
+  const x=m.x,y=m.y,walk=m.moving?Math.sin(NOW*(m.super>0?22:14))*6:0,f=m.face||1;
+  if(m.super>0){
+    const pr=1+Math.sin(NOW*14)*.08;
+    c.fillStyle='rgba(255,163,26,.28)';c.beginPath();c.ellipse(x,y-50,44*pr,62*pr,0,0,Math.PI*2);c.fill();
+    c.fillStyle='rgba(255,90,60,.22)';c.beginPath();c.ellipse(x,y-50,32*pr,50*pr,0,0,Math.PI*2);c.fill();
+  }
+  ell(c,x,y+1,22,6,'rgba(0,0,0,.2)');
+  line(c,x-6,y-30,x-6-walk,y-3,INK,6);line(c,x+6,y-30,x+6+walk,y-3,INK,6);
+  ell(c,x-7-walk,y-2,6,3.5,'#7a1f2e',true);ell(c,x+7+walk,y-2,6,3.5,'#7a1f2e',true);
+  c.fillStyle='#e2445c';c.strokeStyle=INK;c.lineWidth=2;c.beginPath();c.moveTo(x-11,y-72);c.lineTo(x+11,y-72);c.lineTo(x+21,y-28);c.lineTo(x-21,y-28);c.closePath();c.fill();c.stroke();
+  c.fillStyle='#fff';c.beginPath();c.arc(x,y-50,3,0,Math.PI*2);c.fill();
+  if(m.frozen>0){
+    line(c,x-10,y-66,x-20,y-48,INK,7);line(c,x+10,y-66,x+20,y-48,INK,7);
+    line(c,x-10,y-66,x-20,y-48,SKIN,4);line(c,x+10,y-66,x+20,y-48,SKIN,4);
+  } else if(m.carried&&m.carried.length){
+    line(c,x-10,y-66,x+4,y-52,INK,7);line(c,x-10,y-66,x+4,y-52,SKIN,4);
+  } else {
+    const w=Math.sin(NOW*18)*6;
+    line(c,x-10,y-66,x-22*f+(f>0?0:0)-4,y-88+w,INK,7);line(c,x+10,y-66,x+24,y-86-w,INK,7);
+    line(c,x-10,y-66,x-26,y-88+w,SKIN,4);line(c,x+10,y-66,x+24,y-86-w,SKIN,4);
+    c.save();c.translate(x+26,y-92-w);c.rotate(.3);c.fillStyle='#bfe8ff';c.strokeStyle=INK;c.lineWidth=1.5;rr(c,-9,-6,18,12,3);c.fill();c.stroke();
+    c.fillStyle=ZET;c.fillRect(-6,-1,12,3);c.restore();
+  }
+  const hy=y-86;
+  ell(c,x,hy+1,15,16,'#5a3320');
+  ell(c,x,hy+3,13,14,SKIN,true);
+  c.fillStyle='#5a3320';c.beginPath();c.arc(x,hy-2,14.5,Math.PI*1.05,Math.PI*1.95);c.lineTo(x,hy-8);c.closePath();c.fill();
+  ell(c,x,hy-19,8,7,'#5a3320',true);
+  const yelling=(m.bubble&&m.bubble.t>0)||m.frozen>0;
+  c.strokeStyle=INK;c.lineWidth=2;c.beginPath();c.arc(x-5+f*2,hy-2,4.5,Math.PI*1.2,Math.PI*1.8);c.stroke();c.beginPath();c.arc(x+5+f*2,hy-2,4.5,Math.PI*1.2,Math.PI*1.8);c.stroke();
+  ell(c,x-5+f*2,hy+1,2.2,2.6,INK);ell(c,x+5+f*2,hy+1,2.2,2.6,INK);
+  ell(c,x-9,hy+6,3,2,'rgba(255,110,110,.45)');ell(c,x+9,hy+6,3,2,'rgba(255,110,110,.45)');
+  if(yelling) ell(c,x+f*2,hy+9,3.5,2.5+Math.abs(Math.sin(NOW*14))*1.5,'#7a1f2e',true);
+  else{c.strokeStyle=INK;c.lineWidth=2;c.beginPath();c.arc(x+f*2,hy+6,4,.3,Math.PI-.3);c.stroke();}
+  if(m.frozen>0){
+    c.font='20px "Lilita One", sans-serif';c.textAlign='center';c.lineWidth=4;c.strokeStyle=INK;
+    for(let i=0;i<2;i++){const p=((NOW*.9+i/2)%1);c.globalAlpha=1-p;c.strokeText('?',x-10+i*20,hy-26-p*24);c.fillStyle='#fff';c.fillText('?',x-10+i*20,hy-26-p*24);}c.globalAlpha=1;
+  }
+  if(m.reading>0){c.fillStyle='#222';c.strokeStyle=INK;c.lineWidth=1.5;rr(c,x+8,y-84,10,16,2);c.fill();c.stroke();c.fillStyle='#dcf8c6';c.fillRect(x+10,y-82,6,11);}
+  if(m.super>0){
+    for(let i=0;i<5;i++){const a=NOW*5+i*Math.PI*2/5;star(c,x+Math.cos(a)*40,y-55+Math.sin(a)*55,6,i%2?'#ffd84a':'#ff8a3d');}
+    c.strokeStyle='#5a3320';c.lineWidth=3;for(let i=-2;i<=2;i++){c.beginPath();c.moveTo(x+i*5,y-104);c.lineTo(x+i*8,y-118-Math.abs(Math.sin(NOW*20+i))*6);c.stroke();}
+  }
+  if(m.carried) m.carried.forEach((cb,i)=>drawBaby(c,cb,x+(i?-24:22),y-42,{flail:true,armsUp:true,noShadow:true,sad:true,still:true}));
+}
+
+function drawPigeon(c,p){
+  const x=p.x,y=p.y-(p.z||0),dir=p.dir||1;
+  if(!p.perched&&!(p.z>0)) ell(c,p.x,p.y+1,8,3,'rgba(0,0,0,.15)');
+  ell(c,x,y-6,9,6,'#8d95a3',true);
+  ell(c,x+dir*8,y-12,4.5,4.5,'#7b8494',true);
+  ell(c,x+dir*5,y-9,3,2.5,'#4f9c84');
+  c.fillStyle='#e8a33a';c.beginPath();c.moveTo(x+dir*12,y-13);c.lineTo(x+dir*16,y-12);c.lineTo(x+dir*12,y-11);c.fill();
+  ell(c,x+dir*9,y-13,1,1,INK);
+  if(p.z>0){const fl=Math.sin(NOW*40)*6;c.fillStyle='#a2aab8';c.beginPath();c.moveTo(x-2,y-8);c.lineTo(x-dir*10,y-18-fl);c.lineTo(x+4,y-7);c.fill();}
+  else line(c,x-dir*6,y-4,x-dir*12,y-2,'#6c7482',3);
+}
+
+function drawFriend(c,f){
+  const x=f.x,y=f.y;
+  ell(c,x,y+3,48,8,'rgba(0,0,0,.18)');
+  c.save();c.translate(x-66,y-2);c.rotate(-.12);c.fillStyle='#d9b07a';c.strokeStyle=INK;c.lineWidth=2;rr(c,-26,-56,52,56,3);c.fill();c.stroke();
+  c.fillStyle=INK;c.font='900 9px Nunito, "Segoe UI", sans-serif';c.textAlign='center';
+  c.fillText('PRIMAM',0,-42);c.fillText('BEBE I',0,-30);c.fillText('STARE',0,-18);c.fillText('KUNE',0,-6);c.restore();
+  c.fillStyle='#c89b62';c.strokeStyle=INK;c.lineWidth=2;rr(c,-42+x,y-10,84,14,3);c.fill();c.stroke();
+  c.fillStyle='#4b4f5c';rr(c,x-30,y-18,60,13,6);c.fill();c.stroke();
+  ell(c,x-31,y-9,7,5,'#2a2a2a',true);ell(c,x+31,y-9,7,5,'#2a2a2a',true);
+  ell(c,x,y-38,25,27,'#8a6a45',true);
+  c.fillStyle='#6f8f5a';c.fillRect(x+6,y-36,9,8);c.strokeStyle=INK;c.lineWidth=1;c.strokeRect(x+6,y-36,9,8);
+  const hy=y-76;
+  if(f.holding){
+    drawBaby(c,f.holding,x,y-112,{armsUp:true,noShadow:true,still:true});
+    line(c,x-18,y-54,x-14,y-118,INK,9);line(c,x+18,y-54,x+14,y-118,INK,9);
+    line(c,x-18,y-54,x-14,y-118,'#8a6a45',6);line(c,x+18,y-54,x+14,y-118,'#8a6a45',6);
+    for(let i=0;i<4;i++){const a=NOW*2+i*Math.PI/2;star(c,x+Math.cos(a)*42,y-150+Math.sin(a)*16,5,'#ffd84a');}
+  }
+  ell(c,x,hy,15,16,SKIN,true);
+  c.fillStyle='#e6e6e6';c.strokeStyle=INK;c.lineWidth=2;c.beginPath();c.ellipse(x,hy+5,15,13,0,0,Math.PI);c.fill();c.stroke();
+  c.strokeStyle=INK;c.lineWidth=2;c.beginPath();c.arc(x,hy+7,5,.2,Math.PI-.2);c.stroke();
+  c.beginPath();c.arc(x-6,hy-2,3,Math.PI*1.1,Math.PI*1.9);c.stroke();c.beginPath();c.arc(x+6,hy-2,3,Math.PI*1.1,Math.PI*1.9);c.stroke();
+  ell(c,x,hy+2,4,3.5,'#e89a86',true);
+  c.fillStyle='#d6453d';c.beginPath();c.arc(x,hy-5,15.5,Math.PI,0);c.closePath();c.fill();c.stroke();
+  c.fillStyle='#b8352e';rr(c,x-16,hy-8,32,6,3);c.fill();c.stroke();
+  ell(c,x,hy-23,5,5,'#fff',true);
+  if(!f.holding){
+    const wv=f.wave>0?Math.sin(NOW*18)*10:0;
+    line(c,x-20,y-52,x-16,y-24,INK,9);line(c,x-20,y-52,x-16,y-24,'#8a6a45',6);
+    line(c,x+20,y-52,x+30+(f.wave>0?10:0),f.wave>0?y-86+wv:y-24,INK,9);line(c,x+20,y-52,x+30+(f.wave>0?10:0),f.wave>0?y-86+wv:y-24,'#8a6a45',6);
+  }
+  drawPigeon(c,{x:x+30,y:y-56,dir:-1,perched:true});
+}
+
+function drawTata(c,t){
+  const x=t.x,y=t.y,walk=t.moving?Math.sin(NOW*12)*6:0;
+  ell(c,x,y+1,20,6,'rgba(0,0,0,.2)');
+  line(c,x-7,y-44,x-7-walk,y-4,INK,9);line(c,x+7,y-44,x+7+walk,y-4,INK,9);
+  line(c,x-7,y-44,x-7-walk,y-4,'#2c4a7a',6);line(c,x+7,y-44,x+7+walk,y-4,'#2c4a7a',6);
+  ell(c,x-8-walk,y-2,7,4,'#eee',true);ell(c,x+8+walk,y-2,7,4,'#eee',true);
+  c.fillStyle='#4aa3df';c.strokeStyle=INK;c.lineWidth=2;rr(c,x-17,y-92,34,52,10);c.fill();c.stroke();
+  c.fillStyle=ZET;rr(c,x-14,y-95,28,8,4);c.fill();c.stroke();
+  c.fillStyle='#fff';c.fillRect(x-6,y-94,4,6);c.fillRect(x+4,y-94,4,6);
+  c.fillStyle=ZET;rr(c,x+4,y-90,8,26,3);c.fill();c.stroke();
+  line(c,x-15,y-84,x-22,y-50,INK,8);line(c,x-15,y-84,x-22,y-50,'#4aa3df',5);
+  line(c,x+15,y-84,x+22,y-64,INK,8);line(c,x+15,y-84,x+22,y-64,'#4aa3df',5);
+  c.fillStyle='#222';rr(c,x+16,y-78,11,18,2);c.fill();c.stroke();
+  c.fillStyle=`rgba(155,231,255,${.7+Math.sin(NOW*6)*.3})`;c.fillRect(x+18,y-76,7,13);
+  const hy=y-108;
+  ell(c,x,hy,15,16,SKIN,true);
+  c.fillStyle='#3b2516';c.beginPath();c.arc(x,hy-3,15.5,Math.PI*1.05,Math.PI*1.95);c.closePath();c.fill();
+  c.fillStyle='#111';rr(c,x-13,hy-15,26,6,3);c.fill();
+  ell(c,x-5,hy+1,2.2,2.6,INK);ell(c,x+6,hy+1,2.2,2.6,INK);
+  c.strokeStyle=INK;c.lineWidth=2;c.beginPath();c.arc(x+1,hy+6,5,.3,Math.PI-.6);c.stroke();
+  c.fillStyle='rgba(60,40,30,.25)';c.beginPath();c.ellipse(x,hy+9,10,6,0,0,Math.PI);c.fill();
+}
+
+function star(c,x,y,r,col){c.fillStyle=col;c.strokeStyle=INK;c.lineWidth=1;c.beginPath();for(let i=0;i<10;i++){const a=i*Math.PI/5-Math.PI/2,rr2=i%2?r*.45:r;c.lineTo(x+Math.cos(a)*rr2,y+Math.sin(a)*rr2);}c.closePath();c.fill();c.stroke();}
+
+function drawTram(c,tr){
+  const b=tr.y,L=tr.len,x=tr.x,top=b-74,h=66,front=tr.dir>0;
+  const wy=b-92, px=x+L/2;
+  line(c,px-12,top,px,wy+6,INK,2);line(c,px+12,top,px,wy+6,INK,2);line(c,px-10,wy+2,px+10,wy+2,INK,3);
+  c.fillStyle=tr.color||ZET;c.strokeStyle=INK;c.lineWidth=2.5;rr(c,x,top,L,h,16);c.fill();c.stroke();
+  c.fillStyle='#103a78';rr(c,x+2,b-20,L-4,12,6);c.fill();
+  c.fillStyle='#f2f4f7';c.fillRect(x+4,top+h*.56,L-8,6);
+  const seg=L/3;
+  for(let i=1;i<3;i++){c.fillStyle='#0b2a57';c.fillRect(x+i*seg-4,top+2,8,h-4);}
+  c.fillStyle='#bfe3f7';
+  for(let s=0;s<3;s++){
+    const sx=x+s*seg;
+    for(let k=0;k<3;k++){const wx=sx+12+k*((seg-24)/3);c.fillStyle='#bfe3f7';rr(c,wx,top+10,(seg-24)/3-6,20,3);c.fill();c.strokeStyle='#0b2a57';c.lineWidth=1.5;c.stroke();}
+    c.fillStyle='#e9eef5';rr(c,sx+seg/2-11,top+36,22,h-40,2);c.fill();c.strokeStyle='#0b2a57';c.stroke();
+    line(c,sx+seg/2,top+38,sx+seg/2,top+h-6,'#0b2a57',1.5);
+    ell(c,sx+seg*.3,b-4,10,6,'#2b2f38');ell(c,sx+seg*.7,b-4,10,6,'#2b2f38');
+  }
+  const fx=front?x+L-40:x+8;
+  c.fillStyle='#9fd0ee';rr(c,fx,top+8,32,28,6);c.fill();c.strokeStyle='#0b2a57';c.lineWidth=1.5;c.stroke();
+  ell(c,fx+16,top+28,6,7,SKIN);c.fillStyle='#2c3e66';c.fillRect(fx+9,top+20,14,4);
+  const dx=front?x+L-120:x+44;
+  c.fillStyle='#111';rr(c,dx,top-1,76,13,3);c.fill();
+  c.fillStyle='#ffa31a';c.font='15px VT323, "Courier New", monospace';c.textAlign='left';c.textBaseline='middle';
+  c.fillText(tr.special?'DIDA EXPRES':`${tr.num} ${tr.dest}`.slice(0,11),dx+4,top+6);
+  c.textBaseline='alphabetic';
+  c.fillStyle='#fff';c.font='16px "Lilita One", "Trebuchet MS", sans-serif';c.textAlign='center';c.fillText(tr.special?'★ DIDA ★':'ZET',x+L/2,top+h*.56-3);
+  c.fillStyle='#ffe28a';ell(c,front?x+L-6:x+6,b-26,4,4,'#ffe28a',true);
+}
+
+function drawBrushItem(c,it){
+  const bob=Math.sin(NOW*4+it.ph)*3;
+  ell(c,it.x,it.y+2,16,4,'rgba(0,0,0,.18)');
+  if(it.gold){c.fillStyle='rgba(255,216,74,.35)';c.beginPath();c.arc(it.x,it.y-10+bob,26+Math.sin(NOW*6)*3,0,Math.PI*2);c.fill();}
+  choc(c,it.x-15,it.y-6+bob,-.35,32,it.gold);
+  if(Math.sin(NOW*5+it.ph)>.6) star(c,it.x+12,it.y-26+bob,5,'#fff');
+}
+
+function drawVegeta(c,v){
+  if(v.t<3&&Math.floor(NOW*8)%2)return;
+  const bob=Math.sin(NOW*5)*3,x=v.x,y=v.y-8+bob;
+  ell(c,v.x,v.y+2,16,4,'rgba(0,0,0,.2)');
+  c.fillStyle='rgba(255,216,74,.35)';c.beginPath();c.arc(x,y-14,30+Math.sin(NOW*7)*4,0,Math.PI*2);c.fill();
+  c.save();c.translate(x,y-14);c.rotate(Math.sin(NOW*3)*.12);
+  c.fillStyle='#fff';c.strokeStyle=INK;c.lineWidth=2;rr(c,-15,-20,30,40,4);c.fill();c.stroke();
+  c.fillStyle='#2f6fc7';c.fillRect(-14,-19,28,10);
+  c.fillStyle='#c9302c';c.font='900 8px Nunito, sans-serif';c.textAlign='center';c.fillText('VEGETA',0,4);
+  c.fillStyle='#f1b33c';ell(c,-6,12,3,2,'#f1b33c');ell(c,3,13,2.5,2,'#7fb24a');ell(c,8,10,2,1.5,'#e86b2c');
+  c.restore();
+  label(c,v.x,v.y,'VEGETA','rgba(201,48,44,.9)');
+}
+
+function drawBaka(c,k){
+  const x=k.x,y=k.y,walk=k.moving?Math.sin(NOW*12)*5:0;
+  ell(c,x,y+1,18,5,'rgba(0,0,0,.2)');
+  line(c,x-5,y-28,x-5-walk,y-4,INK,7);line(c,x+5,y-28,x+5+walk,y-4,INK,7);
+  line(c,x-5,y-28,x-5-walk,y-4,'#3b3f58',4);line(c,x+5,y-28,x+5+walk,y-4,'#3b3f58',4);
+  ell(c,x-6-walk,y-2,6,3.5,'#c55a8a',true);ell(c,x+6+walk,y-2,6,3.5,'#c55a8a',true);
+  c.fillStyle='#fbfbfb';c.strokeStyle=INK;c.lineWidth=2;c.beginPath();c.moveTo(x-12,y-74);c.lineTo(x+12,y-74);c.lineTo(x+17,y-26);c.lineTo(x-17,y-26);c.closePath();c.fill();c.stroke();
+  line(c,x,y-70,x,y-28,'#c9ced8',1.5);
+  c.fillStyle='#3fb68b';c.beginPath();c.moveTo(x-5,y-74);c.lineTo(x+5,y-74);c.lineTo(x,y-66);c.closePath();c.fill();
+  c.fillStyle='#2e9a5b';c.fillRect(x+4,y-62,9,3);c.fillRect(x+7,y-65,3,9);
+  const wv=k.wave>0?Math.sin(NOW*16)*8:0;
+  line(c,x-11,y-70,x-22,k.wave>0?y-92+wv:y-46,INK,8);line(c,x-11,y-70,x-22,k.wave>0?y-92+wv:y-46,'#fbfbfb',5);
+  line(c,x+11,y-70,x+19,y-48,INK,8);line(c,x+11,y-70,x+19,y-48,'#fbfbfb',5);
+  c.fillStyle='#e2447f';c.strokeStyle=INK;c.lineWidth=2;rr(c,x+13,y-52,16,13,3);c.fill();c.stroke();c.beginPath();c.arc(x+21,y-52,5,Math.PI,0);c.stroke();
+  const hy=y-88;
+  ell(c,x,hy+3,17,17,'#8b4a2b',true);
+  ell(c,x,hy+1,13,14,SKIN,true);
+  c.fillStyle='#8b4a2b';c.beginPath();c.arc(x,hy-2,14,Math.PI*1.05,Math.PI*1.95);c.quadraticCurveTo(x+2,hy-4,x-13,hy-4);c.closePath();c.fill();
+  ell(c,x-5,hy+1,2.1,2.5,INK);ell(c,x+5,hy+1,2.1,2.5,INK);
+  ell(c,x-9,hy+6,2.6,1.8,'rgba(255,110,110,.5)');ell(c,x+9,hy+6,2.6,1.8,'rgba(255,110,110,.5)');
+  c.strokeStyle=INK;c.lineWidth=2;c.beginPath();c.arc(x,hy+6,4,.3,Math.PI-.3);c.stroke();
+  ell(c,x-14,hy+8,2,2,'#ffd84a');ell(c,x+14,hy+8,2,2,'#ffd84a');
+}
+
+function drawDida(c,d){
+  const x=d.x,y=d.y;
+  line(c,x-6,y-26,x-8,y-3,INK,9);line(c,x+6,y-26,x+8,y-3,INK,9);
+  line(c,x-6,y-26,x-8,y-3,'#2c4a7a',6);line(c,x+6,y-26,x+8,y-3,'#2c4a7a',6);
+  ell(c,x-9,y-1,6,3.5,'#5a3a22',true);ell(c,x+9,y-1,6,3.5,'#5a3a22',true);
+  c.fillStyle='#3a8f86';c.strokeStyle=INK;c.lineWidth=2;rr(c,x-15,y-62,30,38,9);c.fill();c.stroke();
+  c.strokeStyle='#6b7280';c.lineWidth=2.5;c.beginPath();c.moveTo(x-8,y-62);c.quadraticCurveTo(x-10,y-44,x-2,y-42);c.stroke();
+  c.beginPath();c.moveTo(x+8,y-62);c.quadraticCurveTo(x+6,y-48,x-2,y-42);c.stroke();
+  ell(c,x-2,y-40,4,4,'#c9ced8',true);
+  const st=Math.sin(NOW*8)*.25;
+  line(c,x+12,y-56,x+22,y-44,INK,7);line(c,x+12,y-56,x+22,y-44,'#3a8f86',4);
+  c.save();c.translate(x+23,y-44);c.rotate(-.9+st);line(c,0,0,0,-26,'#b07a45',4);ell(c,0,-30,5,7,'#c48b52',true);c.restore();
+  line(c,x-12,y-56,x-16,y-32,INK,7);line(c,x-12,y-56,x-16,y-32,'#3a8f86',4);
+  const hy=y-76;
+  ell(c,x,hy,14,15,SKIN,true);
+  c.fillStyle='#4a4a4a';c.beginPath();c.arc(x,hy-2,14.5,Math.PI*1.05,Math.PI*1.95);c.closePath();c.fill();
+  c.fillStyle='#bdbdbd';c.fillRect(x-14,hy-5,3,7);c.fillRect(x+11,hy-5,3,7);
+  ell(c,x-5,hy,2,2.4,INK);ell(c,x+5,hy,2,2.4,INK);
+  c.fillStyle='#7d7d7d';c.beginPath();c.ellipse(x,hy+8,11,6,0,0,Math.PI);c.fill();
+  ell(c,x,hy+4,3,2.6,'#e89a86',true);
+  c.strokeStyle=INK;c.lineWidth=2;c.beginPath();c.arc(x,hy+7,3.5,.3,Math.PI-.3);c.stroke();
+  if(d.cd<=0&&d.inGame){const p=1+Math.sin(NOW*6)*.15;c.font=`${Math.round(22*p)}px "Lilita One", sans-serif`;c.textAlign='center';c.lineWidth=4;c.strokeStyle=INK;c.strokeText('♪',x-24,hy-14);c.fillStyle='#ffd84a';c.fillText('♪',x-24,hy-14);}
+}
+
+function drawMarin(c,k){
+  const x=k.x,y=k.y,walk=k.moving?Math.sin(NOW*12)*6:0;
+  ell(c,x,y+1,20,6,'rgba(0,0,0,.2)');
+  line(c,x-7,y-44,x-7-walk,y-4,INK,9);line(c,x+7,y-44,x+7+walk,y-4,INK,9);
+  line(c,x-7,y-44,x-7-walk,y-4,'#3a3f4f',6);line(c,x+7,y-44,x+7+walk,y-4,'#3a3f4f',6);
+  ell(c,x-8-walk,y-2,7,4,'#fff',true);ell(c,x+8+walk,y-2,7,4,'#fff',true);
+  c.fillStyle='#2d3142';c.strokeStyle=INK;c.lineWidth=2;rr(c,x-18,y-92,36,52,11);c.fill();c.stroke();
+  c.fillStyle='#8fe0c0';c.font='900 12px "Courier New", monospace';c.textAlign='center';c.fillText('</>',x,y-62);
+  line(c,x-16,y-84,x-24,y-50,INK,8);line(c,x-16,y-84,x-24,y-50,'#2d3142',5);
+  c.save();c.translate(x-26,y-62);c.rotate(-.15);c.fillStyle='#c9ced8';c.strokeStyle=INK;c.lineWidth=2;rr(c,-6,-2,10,30,3);c.fill();c.stroke();c.restore();
+  const wv=k.wave>0?Math.sin(NOW*16)*8:0;
+  line(c,x+16,y-84,x+26,k.wave>0?y-110+wv:y-50,INK,8);line(c,x+16,y-84,x+26,k.wave>0?y-110+wv:y-50,'#2d3142',5);
+  const hy=y-108;
+  c.strokeStyle='#222';c.lineWidth=4;c.beginPath();c.arc(x,hy+12,15,.15,Math.PI-.15);c.stroke();
+  ell(c,x,hy,15,16,SKIN,true);
+  ell(c,x-5,hy-9,5,3,'rgba(255,255,255,.6)');ell(c,x-15,hy+1,3,4.5,SKIN,true);ell(c,x+15,hy+1,3,4.5,SKIN,true);
+  c.strokeStyle=INK;c.lineWidth=1.8;rr(c,x-11,hy-3,9,7,2);c.stroke();rr(c,x+2,hy-3,9,7,2);c.stroke();line(c,x-2,hy,x+2,hy,INK,1.5);
+  ell(c,x-6,hy+1,1.6,1.8,INK);ell(c,x+6,hy+1,1.6,1.8,INK);
+  c.fillStyle='#4a2f1d';c.strokeStyle=INK;c.lineWidth=2;c.beginPath();c.moveTo(x-14,hy+1);c.quadraticCurveTo(x-15,hy+22,x,hy+25);c.quadraticCurveTo(x+15,hy+22,x+14,hy+1);c.quadraticCurveTo(x+8,hy+9,x,hy+6);c.quadraticCurveTo(x-8,hy+9,x-14,hy+1);c.fill();c.stroke();
+  c.strokeStyle='#f6c9a8';c.lineWidth=2;c.beginPath();c.arc(x,hy+9,4,.2,Math.PI-.2);c.stroke();
+}
+
+function drawChatIcon(c,x,y){
+  c.fillStyle='#dcf8c6';c.strokeStyle=INK;c.lineWidth=2.5;rr(c,x-50,y-80,100,62,14);c.fill();c.stroke();
+  c.beginPath();c.moveTo(x-34,y-19);c.lineTo(x-42,y-4);c.lineTo(x-22,y-19);c.closePath();c.fill();c.stroke();
+  c.fillStyle='#128c4a';c.font='900 12px Nunito, sans-serif';c.textAlign='center';c.fillText('Pleme Varnica',x,y-60);
+  c.fillStyle=INK;c.font='800 11px Nunito, sans-serif';c.fillText('Baka: Jesu jeli?',x,y-44);c.fillText('Dida: ok',x,y-29);
+  ell(c,x+42,y-80,10,10,'#e2445c',true);c.fillStyle='#fff';c.font='900 11px Nunito, sans-serif';c.fillText('99',x+42,y-76);
+}
+
+function drawChat(c){
+  const ch=G.chat.show;if(!ch||ch.t<=0)return;
+  c.globalAlpha=Math.min(1,ch.t*3,(4.5-ch.t)*5);
+  const x=W-350,y=72,w=338;
+  c.font='800 14px Nunito, "Segoe UI", sans-serif';
+  const txt=`${ch.from}: ${ch.msg}`;
+  c.fillStyle='#dcf8c6';c.strokeStyle=INK;c.lineWidth=2;rr(c,x,y,w,52,12);c.fill();c.stroke();
+  ell(c,x+24,y+26,15,15,'#128c4a',true);c.fillStyle='#fff';c.font='900 12px Nunito, sans-serif';c.textAlign='center';c.fillText('PV',x+24,y+30);
+  c.textAlign='left';c.fillStyle='#128c4a';c.font='900 13px Nunito, sans-serif';c.fillText(CFG.grupa,x+46,y+20);
+  c.fillStyle=INK;c.font='800 14px Nunito, "Segoe UI", sans-serif';
+  let t=txt;while(c.measureText(t).width>w-56&&t.length>4)t=t.slice(0,-2);if(t!==txt)t=t.slice(0,-1)+'…';
+  c.fillText(t,x+46,y+40);
+  c.globalAlpha=1;
+}
+
+function bubble(c,x,y,text,col){
+  c.font='800 14px Nunito, "Segoe UI", sans-serif';
+  const words=text.split(' '),lines=[];let cur='';
+  for(const w of words){const t=cur?cur+' '+w:w;if(c.measureText(t).width>200&&cur){lines.push(cur);cur=w;}else cur=t;}
+  lines.push(cur);
+  const w=Math.max(...lines.map(l=>c.measureText(l).width))+18,h=lines.length*17+10;
+  const bx=clamp(x-w/2,6,W-w-6);let by=y-h-12;if(by<4)by=4;
+  c.fillStyle=col||'#fff';c.strokeStyle=INK;c.lineWidth=2;
+  const tx=clamp(x,bx+14,bx+w-14);
+  c.beginPath();c.moveTo(tx-7,by+h-1);c.lineTo(tx,by+h+10);c.lineTo(tx+7,by+h-1);c.closePath();c.fill();c.stroke();
+  rr(c,bx,by,w,h,10);c.fill();c.stroke();
+  c.fillStyle=col||'#fff';c.fillRect(tx-6,by+h-3,12,4);
+  c.fillStyle=INK;c.textAlign='center';c.textBaseline='top';
+  lines.forEach((l,i)=>c.fillText(l,bx+w/2,by+6+i*17));
+  c.textBaseline='alphabetic';
+}
+
+function label(c,x,y,text,col){
+  c.font='900 11px Nunito, "Segoe UI", sans-serif';c.textAlign='center';
+  const w=c.measureText(text).width+12;
+  c.fillStyle=col||'rgba(20,33,61,.8)';rr(c,x-w/2,y+6,w,16,8);c.fill();
+  c.fillStyle='#fff';c.fillText(text,x,y+18);
+}
+
+/* ====== BACKGROUND ====== */
+function drawBackground(c){
+  let g=c.createLinearGradient(0,0,0,72);g.addColorStop(0,'#8ccbee');g.addColorStop(1,'#d9f0fb');c.fillStyle=g;c.fillRect(0,0,W,72);
+  c.fillStyle='#bcc8d6';
+  for(let i=0;i<22;i++){const bh=14+((i*37)%26);c.fillRect(i*48-6,70-bh,42,bh);}
+  c.fillStyle='#a3b0c0';
+  [[684],[716]].forEach(([tx])=>{c.fillRect(tx,22,14,48);c.beginPath();c.moveTo(tx-1,22);c.lineTo(tx+7,0);c.lineTo(tx+15,22);c.fill();});
+  c.fillRect(676,44,62,26);
+  c.fillStyle='#55585f';c.fillRect(0,70,W,180);
+  c.fillStyle='rgba(255,255,255,.06)';for(let i=0;i<120;i++)c.fillRect((i*137)%W,72+(i*53)%175,3,2);
+  for(const b of TRACKS){
+    c.fillStyle='#6b6e75';c.fillRect(0,b-8,W,20);
+    c.fillStyle='#c9ccd2';c.fillRect(0,b-6,W,3);c.fillRect(0,b+7,W,3);
+    c.strokeStyle='#2a2a2a';c.lineWidth=1.5;c.beginPath();c.moveTo(0,b-92);c.lineTo(W,b-92);c.stroke();
+  }
+  c.fillStyle='#f1d34a';for(let x=10;x<W;x+=60)c.fillRect(x,191,30,3);
+  c.fillStyle='#cfc9bb';c.fillRect(0,246,W,8);
+  c.fillStyle='#e7e0d2';c.fillRect(0,254,W,H-254);
+  c.strokeStyle='#d8d0c0';c.lineWidth=1;
+  for(let y=280;y<H;y+=30){c.beginPath();c.moveTo(0,y);c.lineTo(W,y);c.stroke();}
+  for(let y=254;y<H;y+=30)for(let x=((y/30)%2)*30;x<W;x+=60){c.beginPath();c.moveTo(x,y);c.lineTo(x,y+30);c.stroke();}
+  // Autobusni kolodvor
+  c.fillStyle='#c9cfd6';c.strokeStyle=INK;c.lineWidth=3;rr(c,8,262,286,172,6);c.fill();c.stroke();
+  c.fillStyle='#24548f';c.fillRect(8,262,286,34);c.strokeRect(8,262,286,34);
+  c.fillStyle='#fff';c.font='19px "Lilita One", "Trebuchet MS", sans-serif';c.textAlign='center';c.fillText('AUTOBUSNI KOLODVOR',151,286);
+  c.fillStyle='#9fd0ee';for(let i=0;i<4;i++){rr(c,24+i*68,310,52,40,4);c.fill();c.strokeStyle='#5b6785';c.lineWidth=2;c.stroke();}
+  c.fillStyle='#5b6785';rr(c,120,366,62,68,4);c.fill();c.fillStyle='#9fd0ee';c.fillRect(126,372,23,56);c.fillRect(153,372,23,56);
+  c.fillStyle='#ffa31a';c.fillRect(30,372,70,22);c.fillStyle='#111';c.font='13px VT323, monospace';c.fillText('POLAZAK 17:05',65,387);
+  c.fillStyle='#ffa31a';c.fillRect(200,372,80,22);c.fillStyle='#111';c.fillText('KAŠNJENJE 40\'',240,387);
+  // WC kiosk
+  c.fillStyle='#2f8f6b';c.strokeStyle=INK;c.lineWidth=3;rr(c,852,268,140,132,8);c.fill();c.stroke();
+  c.fillStyle='#fff';c.font='44px "Lilita One", "Trebuchet MS", sans-serif';c.font='30px "Lilita One", "Trebuchet MS", sans-serif';c.fillText('KIOSK',922,312);
+  c.font='800 14px Nunito, sans-serif';c.fillText('SLATKIŠI',922,336);
+  c.fillStyle='#1f6b4f';rr(c,900,348,44,52,4);c.fill();c.stroke();
+  choc(c,858,392,-.3,30,false);choc(c,958,394,-2.8,30,true);
+  // Tram stop
+  line(c,580,328,580,262,'#5b6785',4);
+  c.fillStyle=ZET;c.strokeStyle=INK;c.lineWidth=2;rr(c,548,248,64,26,5);c.fill();c.stroke();
+  c.fillStyle='#fff';c.font='12px "Lilita One", sans-serif';c.fillText('STANICA',580,265);
+  c.fillStyle='#8a5a2b';rr(c,610,304,110,8,3);c.fill();c.stroke();rr(c,610,316,110,8,3);c.fill();c.stroke();
+  line(c,620,324,620,336,INK,4);line(c,710,324,710,336,INK,4);
+  // Kolica (stroller)
+  const sx=STROLLER.x,sy=STROLLER.y;
+  ell(c,sx,sy+4,40,6,'rgba(0,0,0,.18)');
+  c.fillStyle='#7d5ba6';c.strokeStyle=INK;c.lineWidth=2.5;
+  c.beginPath();c.moveTo(sx-36,sy-28);c.lineTo(sx+30,sy-28);c.quadraticCurveTo(sx+30,sy-4,sx,sy-4);c.quadraticCurveTo(sx-36,sy-4,sx-36,sy-28);c.fill();c.stroke();
+  c.fillStyle='#5b3f80';c.beginPath();c.moveTo(sx-36,sy-28);c.arc(sx-16,sy-28,20,Math.PI,Math.PI*1.75);c.lineTo(sx-16,sy-28);c.closePath();c.fill();c.stroke();
+  line(c,sx+30,sy-28,sx+44,sy-50,INK,3);
+  ell(c,sx-22,sy,7,7,'#333',true);ell(c,sx+20,sy,7,7,'#333',true);
+  c.fillStyle='#fff';c.font='900 10px Nunito, sans-serif';c.fillText('KOLICA',sx-2,sy-12);
+}
+
+/* ====== SOUND ====== */
+let AC=null,muted=false;
+function initAudio(){try{if(!AC)AC=new (window.AudioContext||window.webkitAudioContext)();if(AC.state==='suspended')AC.resume();}catch(e){AC=null;}}
+function snd(f,d,type,v,f2,delay){if(!AC||muted)return;const t0=AC.currentTime+(delay||0);const o=AC.createOscillator(),g=AC.createGain();o.type=type||'square';o.frequency.setValueAtTime(f,t0);if(f2)o.frequency.exponentialRampToValueAtTime(f2,t0+d);g.gain.setValueAtTime(v||.06,t0);g.gain.exponentialRampToValueAtTime(.0001,t0+d);o.connect(g).connect(AC.destination);o.start(t0);o.stop(t0+d+.02);}
+const SFX={
+  ding(){snd(1568,.4,'triangle',.09);snd(1175,.5,'triangle',.09,null,.15);},
+  pick(){snd(600,.12,'square',.04,1300);},
+  gold(){[660,880,1100,1320].forEach((f,i)=>snd(f,.15,'square',.04,null,i*.07));},
+  mama(){snd(520,.18,'triangle',.07,440);snd(440,.25,'triangle',.07,330,.2);},
+  hug(){snd(523,.15,'sine',.08,784);snd(784,.2,'sine',.06,1046,.12);},
+  tata(){snd(392,.1,'square',.05);snd(523,.12,'square',.05,null,.1);snd(659,.18,'square',.05,null,.2);},
+  burek(){snd(300,.1,'square',.05,600);snd(600,.18,'square',.05,900,.1);},
+  end(){[523,659,784,1046].forEach((f,i)=>snd(f,.25,'triangle',.08,null,i*.15));},
+  tick(){snd(880,.05,'square',.03);},
+  hack(){[400,800,600,1200,900].forEach((f,i)=>snd(f,.07,'square',.04,null,i*.06));},
+  ping(){snd(1200,.1,'sine',.07);snd(1600,.15,'sine',.06,null,.1);},
+  whistle(){snd(1800,.25,'sine',.06,2400);snd(2400,.35,'sine',.06,1700,.28);},
+  veg(){snd(500,.12,'triangle',.06,700);snd(700,.15,'triangle',.06,500,.14);},
+  drop(){[523,659,784].forEach((f,i)=>snd(f,.12,'triangle',.07,null,i*.08));},
+  power(){snd(150,.6,'sawtooth',.07,900);snd(300,.5,'square',.04,1200,.1);}
+};
+
+/* ====== LINES ====== */
+const L={
+  tram:['TAMVAJ!','PIP!','Ta-ta-tamvaj!','Bip bip!','Cin cin!','Tamvaj moj!'],
+  dino:['RAAWR! Tamvaj-saurus!','Dinosaur tamvaj!','Rrraaawr!'],
+  shark:['Baby shark, du du du!','Du du du du du!','Mama shark, du du du!'],
+  choc:['Čokolada!','Moje!','Mmm, čokolada!','Njam njam!'],
+  flee:['Hihi, ne možeš me!','Bjež!','Ne kolica!','Neeeee!','Hihihi!'],
+  out:['Bu!','Opet ja!','Hihi!','Kolica su dosadna!'],
+  driver:['Mali, s tračnica!','Ovo nije igralište!','Gospođo, vaše dijete!','Ne liži tramvaj!'],
+  friendHug:b=>['Ajme, mala mrvica!','Dođi kod barbe!','Najbolja beba na kolodvoru!',gx(b,'Ti si moj mali kralj!','Ti si moja mala kraljica!'),'Gle, gle, golubovi!'],
+  friendIdle:['Bebe, ovamo! Imam golubove!','Primam bebe!','Dobar dan, gospođo Lucija!','Autobus kasni, imamo vremena!'],
+  friendLose:['Gospođo, samo smo se grlili!','Ajme, već idete?','Dođite opet, mrvice!'],
+  catchmama:b=>['Uhvatila sam te!',`Kamo si ti ${gx(b,'krenuo','krenula')}?`,`Ajmo u kolica, ${gx(b,'maleni','malena')}!`,'Daj mami tu čokoladu, srce.','Tramvaj se ne liže!'],
+  catchtata:b=>['Tata te ima!',`Ajde, ${b.name}, idemo!`,'Hop, u zrak i u kolica!','Samo da nađem Velo... a ne, tebe tražim!','Gdje ćeš ti?'],
+  dropmama:['Tako. Sjedi malo u kolicima.','Vlažne maramice i idemo dalje.','Mama treba kavu...','Ovo ide u Pleme Varnica.'],
+  droptata:['Evo, sjedi. Gdje mi je Velo?','Jedan u kolicima, super!','Lucija, vidi, uspio sam!','Tata je legenda.'],
+  helptata:['Evo me, Lucija! Pomažem!','Ajmo djeco, tata dolazi!'],
+  failtata:['Lucija, jesi vidjela moj Velo?','Lucija, gdje sam stavio Velo?!','Lucija, nemam više Vela...','Lucija, Dinamo zabija!'],
+  helpmama:['Ivane, makni se, ja ću!','Ajmo, mama je tu!'],
+  failmama:['Samo da vidim grupu...','Čekaj, baka piše...','Ivane, u jakni ti je Velo!'],
+  idletata:['Ja samo tražim Velo...','Gdje mi je Velo...','Lucija, treba li pomoć?'],
+  idlemama:['Ivane, jesi ih vidio?','Ajme, opet su pobjegli...','Ivane, treba li ti pomoć?'],
+  bakaGive:['Bakino sunce! Evo ti čokoladica!','Dođi baki, bakino sunce!','Evo flaster, sirup i čokolada!','Vitamin C... u obliku čokolade!'],
+  bakaParent:['Pusti dijete, baka je tu!','Ma pusti ih, neka se igraju!','Jeste li vi jeli?'],
+  didaFood:['Danas radim čobanac! Faca od čobanca!','Čobanac se krčka, crven ko tramvaj!','Ovo je faca od čobanca, vjerujte mi!','Sutra pečem janjetinu, zlatnu i hrskavu!','Gulaš je gotov, smeđi ko medo!','Napravio sam ajvar, narančast ko Elena!','Palačinke! Žute, s čokoladom!','Juha od graška, zelena ko Toma!','Večeras roštilj! Ćevapi, luk, kajmak!','Ovaj golub je zdrav, pregledao sam ga.'],
+  didaCall:['Fiiiju! Dida Express, vozi ravno na ručak!','Zovem tramvaj, a vi dođite na čobanac!','Ukrcaj se, danas su palačinke!'],
+  didaStopped:['Dobro, nema tramvaja. Ali čobanac je u 13h!','Može, nema Dida Expressa. Faca od čobanca umjesto toga!','U redu! Idemo radije na palačinke!'],
+  marinIdle:['Ja sam programer, znate.','Moram do Konzuma... po kruh. I zbog blagajnice.','Blagajnica na kasi 3 je savršena.','Imate li Konzum karticu? Ja imam. Tri.','Ja sam programer. Ona radi u Konzumu. Sudbina.'],
+  marinHack:['Ja sam programer! Hakirao sam ZET!','Ja sam programer. sudo stop_tramvaji','Hakirao sam tramvaje. Sad idem u Konzum.']
+};
+
+const CHAT=[
+  ['Baka Suzana','Dobro jutro svima!! 🌹🌹🌹'],['Baka Suzana','Jesu djeca jela?'],['Baka Suzana','Šaljem recept za sarmu'],
+  ['Baka Suzana','Pošaljite sliku djece!!'],['Dida Ivica','[fotografija: sarma]'],['Dida Ivica','Grah s kobasicama u 13h. Ne kasnite.'],
+  ['Dida Ivica','Kad dolazite na ručak?'],['Dida Ivica','Radim čobanac. Faca od čobanca. 🔥'],['Baka Suzana','Bakino sunce! ☀️'],
+  ['Dida Ivica','Pečem kolač, žuti, s marelicama'],['Baka Suzana','Jesu djeca popila vitamin D?'],['Ivan','Netko vidio moj Velo?'],
+  ['Strika Marin','Ja sam programer.'],['Strika Marin','Bio sam u Konzumu. Opet. 😍'],['Strika Marin','Blagajnica na kasi 3 mi je rekla bok!!'],
+  ['Ivan','👍'],['Lucija','Ne pitajte.']
+];
+
+/* ====== GAME STATE ====== */
+const cv=document.getElementById('c'),ctx=cv.getContext('2d');
+let DPR=1,bgCanvas=null,G=null,raf=0,last=0;
+const KEYS={};
+let joy=null;
+
+function setupCanvas(){
+  DPR=Math.min(window.devicePixelRatio||1,2);
+  cv.width=W*DPR;cv.height=H*DPR;
+  bgCanvas=document.createElement('canvas');bgCanvas.width=W*DPR;bgCanvas.height=H*DPR;
+  const b=bgCanvas.getContext('2d');b.setTransform(DPR,0,0,DPR,0,0);drawBackground(b);
+}
+
+function makeBaby(i){
+  const d=BABIES[i];
+  return {...d,idx:i,x:440+i*120,y:500,dir:1,moving:false,phase:i*1.3,state:'free',brushes:0,happy:0,shield:0,safe:1,
+    friendCd:2,holdT:0,timer:0,bubble:null,goal:null,goalT:0,shieldMsg:0,fleeCd:0,stealCd:4,cry:0,
+    stats:{trams:0,hug:0,choc:0,caught:0,stolen:0,cried:0}};
+}
+function makeParent(kind,scheme,ai){
+  return {kind,name:kind==='mama'?CFG.mama:CFG.tata,scheme,ai:!!ai,x:kind==='mama'?430:570,y:575,face:1,moving:false,
+    carried:[],super:0,velo:0,reading:0,frozen:0,bubble:null};
+}
+
+function newGame(mode){
+  const players=mode==='both'?[makeParent('mama','wasd'),makeParent('tata','arrows')]:[makeParent(mode,'both')];
+  if(mode!=='both')players[0].x=500;
+  const npcKind=mode==='mama'?'tata':mode==='tata'?'mama':null;
+  G={mode,t:0,time:CFG.time,nerves:100,score:0,players,
+    npc:npcKind?{p:{...makeParent(npcKind,'none',true),x:1060,y:470},state:'away',timer:rand(10,14),helpT:0,idleCd:2}:null,
+    babies:[makeBaby(0),makeBaby(1)],trams:[],items:[],pops:[],vegeta:null,velo:null,hack:0,
+    friend:{x:FRIEND.x,y:FRIEND.y,holding:null,bubble:null,cd:3,wave:0},
+    baka:{state:'away',timer:rand(18,24),x:-40,y:600,moving:false,bubble:null,wave:0},
+    marin:{state:'away',timer:rand(26,32),x:-40,y:458,moving:false,bubble:null,wave:0,idleCd:2},
+    dida:{x:665,y:342,cd:8,bubble:null,idleCd:4,inGame:true},
+    chat:{cd:rand(9,13),show:null},
+    pigeons:Array.from({length:5},()=>({x:rand(330,460),y:rand(470,620),dir:pick([-1,1]),z:0,vx:0,vy:0,cd:rand(0,2)})),
+    spawn:{tr:[1.5,3.5],item:.5,veg:rand(14,18),velo:rand(8,12)},
+    paused:false,over:false,shake:0,lastTick:11,stats:{catches:0,taken:0,dropped:0},nervesOut:false};
+  setBubble(players[0],players[0].kind==='mama'?'Djeco, nitko ne dira tramvaj!':'Djeco, tata je glavni danas!',2.4);
+  setBubble(G.babies[0],'Tamvaj!',1.6);setBubble(G.babies[1],'Čokolada!',1.6);
+}
+
+function setBubble(e,text,d){e.bubble={text,t:d||2.4};}
+function pop(x,y,text,col){G.pops.push({x,y,text,col:col||'#ffd84a',t:1.3});}
+const chocWord=n=>`čokolad${n===1?'a':n<5?'e':'a'}`;
+function nerve(d,x,y){G.nerves=clamp(G.nerves-d,0,100);if(x!==undefined)pop(x,y,`-${d} živaca`,'#ff6b81');}
+
+function inputFor(p){
+  if(p.scheme==='remote')return NET?NET.input:{x:0,y:0};
+  let x=0,y=0;const k=KEYS;
+  const w=p.scheme==='wasd'||p.scheme==='both',a=p.scheme==='arrows'||p.scheme==='both';
+  if((w&&k.KeyA)||(a&&k.ArrowLeft))x--;if((w&&k.KeyD)||(a&&k.ArrowRight))x++;
+  if((w&&k.KeyW)||(a&&k.ArrowUp))y--;if((w&&k.KeyS)||(a&&k.ArrowDown))y++;
+  if(p===G.players[0]&&joy&&joy.active){const dx=joy.cx-joy.ox,dy=joy.cy-joy.oy,m=Math.hypot(dx,dy);if(m>8){x=dx/Math.max(m,40);y=dy/Math.max(m,40);}}
+  const m=Math.hypot(x,y);if(m>1){x/=m;y/=m;}
+  return {x,y};
+}
+
+function pushOut(o,r){
+  for(const R of OBST){
+    if(o.x>R.x-r&&o.x<R.x+R.w+r&&o.y>R.y-r&&o.y<R.y+R.h+r){
+      const dl=o.x-(R.x-r),dr=R.x+R.w+r-o.x,dt=o.y-(R.y-r),db=R.y+R.h+r-o.y;
+      const m=Math.min(dl,dr,dt,db);
+      if(m===db)o.y=R.y+R.h+r;else if(m===dt)o.y=R.y-r;else if(m===dl)o.x=R.x-r;else o.x=R.x+R.w+r;
+    }
+  }
+}
+function bound(o){o.x=clamp(o.x,14,986);o.y=clamp(o.y,86,614);pushOut(o,10);}
+
+function freeSpot(minFromParents){
+  for(let k=0;k<40;k++){
+    const onRoad=Math.random()<.3;
+    const p={x:rand(30,970),y:onRoad?rand(100,240):rand(270,610)};
+    pushOut(p,16);
+    if(p.y<86||p.y>614)continue;
+    if(dist(p,FRIEND)<80||dist(p,STROLLER)<70||G.items.some(i=>dist(i,p)<60))continue;
+    if(minFromParents&&G.players.some(pl=>dist(pl,p)<minFromParents))continue;
+    return p;
+  }
+  return null;
+}
+
+function parentSpeed(p){
+  return (p.ai?165:195)*(p.super>0?1.5:1)*(p.velo>0?1.4:1)*(p.reading>0?.5:1)*(1-.1*p.carried.length);
+}
+
+function activeParents(){
+  const a=[...G.players];
+  if(G.npc&&G.npc.state!=='away')a.push(G.npc.p);
+  return a;
+}
+
+function grab(p,b){
+  if(b.state==='held'){G.friend.holding=null;setBubble(G.friend,pick(L.friendLose),2);b.friendCd=3;}
+  b.state='carried';b.carrier=p;p.carried.push(b);b.goal=null;
+  const lost=b.brushes;b.brushes=0;b.stats.caught++;G.stats.catches++;
+  if(lost){G.score+=15*lost;G.stats.taken+=lost;pop(b.x,b.y-90,`+${15*lost} · oduzeto ${lost} ${chocWord(lost)}`,'#8fe0c0');}
+  setBubble(p,pick(L['catch'+p.kind](b)),2);setBubble(b,'Uaaaa!',1.2);
+  G.shake=5;SFX.mama();
+}
+
+function parentInteract(p){
+  const rad=p.super>0?46:34;
+  for(const b of G.babies){
+    if(p.carried.length>=2)break;
+    if(b.state!=='free'&&b.state!=='held')continue;
+    const held=b.state==='held',bx=held?G.friend.x:b.x,by=held?G.friend.y:b.y;
+    if(Math.hypot(bx-p.x,by-p.y)<rad+(held?16:0)){
+      if(b.shield>0){if(b.shieldMsg<=0){pop(b.x,b.y-80,'Bakina zaštita!','#ff9ccf');b.shieldMsg=1.2;}continue;}
+      if(b.safe>0)continue;
+      grab(p,b);
+    }
+  }
+  if(p.carried.length&&dist(p,STROLLER)<58){
+    const n=p.carried.length;
+    p.carried.forEach((b,i)=>{b.state='stroller';b.carrier=null;b.timer=Math.max(3.2,5.2-G.t*.018)+i*.4;});
+    p.carried=[];G.stats.dropped+=n;G.score+=100*n;G.nerves=Math.min(100,G.nerves+4*n);
+    pop(STROLLER.x,STROLLER.y-70,`U KOLICA! +${100*n}`,'#ffd84a');
+    setBubble(p,pick(L['drop'+p.kind]),2);SFX.drop();
+  }
+  if(p.ai)return;
+  if(G.vegeta&&dist(p,G.vegeta)<30){
+    G.vegeta=null;p.super=7;G.shake=12;SFX.power();
+    setBubble(p,p.kind==='mama'?pick(['VEGETA POWER!!!','Mama je napunjena!']):pick(['Vegeta? Ajde, može!','Tata na vegeti!']),2.2);
+    pop(p.x,p.y-130,p.kind==='mama'?'SUPER MAMA!':'SUPER TATA!','#ff8a3d');
+  }
+  if(G.velo&&dist(p,G.velo)<30){
+    G.velo=null;
+    if(p.kind==='tata'){p.velo=6;setBubble(p,'NAŠAO SAM VELO!',2);pop(p.x,p.y-130,'VELO! Turbo tata 6 s','#9be7ff');SFX.burek();}
+    else{G.score+=30;setBubble(p,'Ivane, evo ti Velo.',2);pop(p.x,p.y-130,'+30 Velo vraćen','#9be7ff');SFX.pick();}
+  }
+  const D=G.dida;
+  if(D.cd<=0&&dist(p,D)<48){D.cd=20;G.score+=20;setBubble(D,pick(L.didaStopped),2.6);pop(D.x,D.y-110,'+20 nema Dida Expressa','#8fe0c0');SFX.pick();}
+  const MK=G.marin;
+  if(MK.state==='here'&&dist(p,MK)<48){
+    G.hack=6;MK.state='leave';setBubble(MK,pick(L.marinHack),2.6);pop(MK.x,MK.y-140,'ZET HAKIRAN 6 s!','#8fe0c0');SFX.hack();
+    for(const tr of G.trams)tr.bubble={text:'Sustav hakiran?!',t:2};
+  }
+  const K=G.baka;
+  if(K.state==='here'&&dist(p,K)<46&&!(K.bubble&&K.bubble.t>0))setBubble(K,pick(L.bakaParent),2);
+}
+
+/* ---- baby AI ---- */
+function chooseGoal(b){
+  const opts=[];
+  const toma=b.idx===0;
+  if(G.hack<=0)for(const tr of G.trams){
+    if(tr.hit.has(b.idx))continue;
+    const front=tr.dir>0?tr.x+tr.len:tr.x;
+    const tReach=Math.abs(b.y-(tr.y-6))/150+Math.abs(b.x-front)/600+.3;
+    const x=front+tr.dir*(tr.speed*tReach+rand(30,140));
+    if(x<40||x>960)continue;
+    opts.push({w:toma?6:3,g:{type:'tram',tr,x,y:tr.y-6}});
+  }
+  for(const it of G.items)opts.push({w:(toma?2:5)*(200/(80+dist(b,it))),g:{type:'item',it}});
+  if(!G.friend.holding&&b.friendCd<=0)opts.push({w:2.2,g:{type:'friend'}});
+  if(G.baka.state==='here')opts.push({w:6,g:{type:'baka'}});
+  if(G.dida.cd<=0)opts.push({w:2,g:{type:'dida'}});
+  const sis=G.babies[1];
+  if(toma&&b.stealCd<=0&&sis.state==='free'&&sis.brushes>0)opts.push({w:3+sis.brushes*1.5,g:{type:'sister'}});
+  opts.push({w:1,g:{type:'wander',x:rand(60,940),y:rand(120,600)}});
+  let sum=opts.reduce((a,o)=>a+o.w,0),r=Math.random()*sum;
+  for(const o of opts){r-=o.w;if(r<=0){b.goal=o.g;break;}}
+  if(!b.goal)b.goal=opts[opts.length-1].g;
+  b.goalT=rand(2.5,4.5);
+}
+function goalPos(b){
+  const g=b.goal;
+  if(!g)return null;
+  if(g.type==='tram'){if(!G.trams.includes(g.tr)||g.tr.hit.has(b.idx)||G.hack>0)return null;return {x:g.x,y:g.y};}
+  if(g.type==='item'){if(!G.items.includes(g.it))return null;return g.it;}
+  if(g.type==='friend'){if(G.friend.holding||b.friendCd>0)return null;return {x:G.friend.x,y:G.friend.y+12};}
+  if(g.type==='baka'){if(G.baka.state!=='here')return null;return G.baka;}
+  if(g.type==='sister'){const e=G.babies[1];if(e.state!=='free'||e.brushes<=0||b.stealCd>0)return null;return e;}
+  if(g.type==='dida'){if(G.dida.cd>0)return null;return {x:G.dida.x,y:G.dida.y+8};}
+  return {x:g.x,y:g.y};
+}
+
+function updateBaby(b,dt){
+  const F=G.friend;
+  b.happy=Math.max(0,b.happy-dt);b.shield=Math.max(0,b.shield-dt);b.safe=Math.max(0,b.safe-dt);
+  b.friendCd=Math.max(0,b.friendCd-dt);b.shieldMsg-=dt;b.fleeCd-=dt;b.stealCd-=dt;
+  if(b.bubble)b.bubble.t-=dt;
+  if(b.state==='carried'){b.x=b.carrier.x;b.y=b.carrier.y;b.moving=false;return;}
+  if(b.state==='stroller'){
+    b.x=STROLLER.x+(b.idx?12:-12);b.y=STROLLER.y-16;b.moving=false;b.timer-=dt;
+    if(b.timer<=0){b.state='free';b.y=STROLLER.y-46;b.x=STROLLER.x+(b.idx?40:-40);b.safe=1.3;b.goal=null;setBubble(b,pick(L.out),1.2);SFX.pick();}
+    return;
+  }
+  if(b.state==='held'){
+    b.holdT+=dt;b.x=F.x;b.y=F.y+8;b.moving=false;b.stats.hug+=dt;
+    G.nerves=Math.max(0,G.nerves-4*dt);
+    if(b.holdT>4.5){b.state='free';F.holding=null;b.friendCd=3;b.y=F.y+48;b.x=F.x+30;b.safe=.5;b.goal=null;setBubble(F,pick(['Dođi opet!','Bok, mrvice!']),1.5);}
+    return;
+  }
+  if(b.cry>0){b.cry-=dt;b.moving=false;return;}
+  // AI
+  b.goalT-=dt;
+  let tgt=goalPos(b);
+  if(!tgt||b.goalT<=0){chooseGoal(b);tgt=goalPos(b)||{x:b.x,y:b.y};}
+  let vx=tgt.x-b.x,vy=tgt.y-b.y;const dg=Math.hypot(vx,vy);
+  if(dg>6){vx/=dg;vy/=dg;}else{vx=0;vy=0;}
+  for(const p of activeParents()){
+    if(p.ai&&G.npc.state!=='help')continue;
+    const d=dist(b,p);
+    if(d<150&&d>0){const w=(1-d/150)*1.7;vx+=(b.x-p.x)/d*w;vy+=(b.y-p.y)/d*w;
+      if(d<90&&b.fleeCd<=0&&Math.random()<.02){setBubble(b,pick(L.flee),1.1);b.fleeCd=3;}}
+  }
+  const m=Math.hypot(vx,vy);if(m>1){vx/=m;vy/=m;}
+  const sp=Math.min(190,140+G.t*.5)*(1+.04*b.brushes);
+  b.x+=vx*sp*dt;b.y+=vy*sp*dt;b.moving=m>.05;if(Math.abs(vx)>.1)b.dir=Math.sign(vx);
+  bound(b);
+  // interactions
+  if(!F.holding&&b.friendCd<=0&&dist(b,F)<58){
+    b.state='held';b.holdT=0;F.holding=b;setBubble(F,pick(L.friendHug(b)),2.2);SFX.hug();b.happy=5;nerve(3,F.x,F.y-170);return;
+  }
+  for(let i=G.items.length-1;i>=0;i--){
+    const it=G.items[i];
+    if(Math.hypot(it.x-b.x,(it.y-b.y)*1.3)<28){
+      G.items.splice(i,1);const add=it.gold?3:1;
+      b.brushes=Math.min(6,b.brushes+add);b.stats.choc+=add;b.happy=.8;nerve(it.gold?5:2,it.x,it.y-30);
+      setBubble(b,b.idx===1&&Math.random()<.4?pick(L.shark):pick(L.choc),1.2);
+      it.gold?SFX.gold():SFX.pick();
+    }
+  }
+  if(b.idx===0&&b.stealCd<=0){
+    const e=G.babies[1];
+    if(e.state==='free'&&e.brushes>0&&dist(b,e)<36){
+      const n=e.brushes;b.brushes=Math.min(6,b.brushes+n);e.brushes=0;b.stats.stolen+=n;e.stats.cried++;
+      e.cry=1.8;e.goal=null;b.goal=null;b.stealCd=7;b.happy=1.5;
+      setBubble(b,pick(['Sve je MOJE!','To je moje!','Moje, moje, moje!','Toma je šef čokolade!']),1.6);
+      setBubble(e,pick(['Mamaaa! Toma mi je uzeo čokoladu!','Toma, to je MOJE!','Buaaaa!','Tataaa! Toma krade!']),1.8);
+      nerve(3);pop(e.x,e.y-80,`Toma oteo ${n} ${chocWord(n)}!`,'#ffb3c0');SFX.mama();
+    }
+  }
+  if(G.hack<=0)for(const tr of G.trams){
+    if(!tr.hit.has(b.idx)&&b.x>tr.x+4&&b.x<tr.x+tr.len-4&&b.y>tr.y-32&&b.y<tr.y+10){
+      tr.hit.add(b.idx);b.stats.trams++;b.happy=1.2;nerve(tr.special?14:7,b.x,b.y-70);
+      setBubble(b,b.idx===0&&Math.random()<.4?pick(L.dino):pick(L.tram),1.2);SFX.ding();
+      if(Math.random()<.4)tr.bubble={text:pick(L.driver),t:1.8};
+    }
+  }
+  const K=G.baka;
+  if(K.state==='here'&&dist(b,K)<44){
+    b.shield=6;b.brushes=Math.min(6,b.brushes+1);b.stats.choc++;b.happy=2;K.state='leave';b.goal=null;
+    setBubble(K,pick(L.bakaGive),2.4);pop(b.x,b.y-80,'Bakina zaštita 6 s','#ff9ccf');SFX.hug();
+  }
+  const D=G.dida;
+  if(D.cd<=0&&dist(b,D)<44){
+    D.cd=20;const ti=Math.random()<.5?0:1,dir=ti===0?1:-1,len=270;
+    G.trams.push({x:dir>0?-len-20:W+20,y:TRACKS[ti],dir,len,num:'D',dest:'DIDA EXPRESS',speed:125,hit:new Set(),bubble:{text:'Sljedeća stanica: ručak kod dide!',t:2.5},special:true,color:'#c0392b'});
+    setBubble(D,pick(L.didaCall),2.4);SFX.whistle();b.goal=null;
+  }
+}
+
+/* ---- npc parent (helper) ---- */
+function updateNpc(dt){
+  const N=G.npc;if(!N)return;const p=N.p;
+  if(p.bubble)p.bubble.t-=dt;p.moving=false;
+  if(N.state==='away'){N.timer-=dt;if(N.timer<=0){N.state='enter';p.x=1060;p.y=470;}return;}
+  if(N.state==='enter'){p.x-=150*dt;p.moving=true;p.face=-1;if(p.x<=770){p.x=770;N.state='idle';N.timer=9;setBubble(p,p.kind==='tata'?'Lucija, treba li pomoć?':'Ivane, trebaš li pomoć?',2);SFX.tata();}return;}
+  if(N.state==='idle'){
+    N.timer-=dt;N.idleCd-=dt;
+    if(N.idleCd<=0&&!(p.bubble&&p.bubble.t>0)){setBubble(p,pick(L['idle'+p.kind]),1.8);N.idleCd=3;}
+    for(const pl of G.players){
+      if(dist(pl,p)<48){
+        if(Math.random()<.62){N.state='help';N.helpT=8;setBubble(p,pick(L['help'+p.kind]),2);pop(p.x,p.y-140,'POMOĆ 8 s!','#8fe0c0');SFX.tata();}
+        else{N.state='leave';setBubble(p,pick(L['fail'+p.kind]),2.6);pop(p.x,p.y-140,'Ništa od pomoći...','#c9d6ee');}
+        break;
+      }
+    }
+    if(N.timer<=0&&N.state==='idle')N.state='leave';
+    return;
+  }
+  if(N.state==='help'){
+    N.helpT-=dt;
+    let tx,ty;
+    if(p.carried.length){tx=STROLLER.x;ty=STROLLER.y-14;}
+    else if(N.helpT<=0){N.state='leave';return;}
+    else{
+      let best=null,bd=1e9;
+      for(const b of G.babies){if((b.state==='free'||b.state==='held')&&b.shield<=0){const d=dist(b,p);if(d<bd){bd=d;best=b;}}}
+      if(!best){tx=p.x;ty=p.y;}else{tx=best.x;ty=best.y;}
+    }
+    const dx=tx-p.x,dy=ty-p.y,d=Math.hypot(dx,dy),sp=parentSpeed(p);
+    if(d>2){p.x+=dx/d*Math.min(sp*dt,d);p.y+=dy/d*Math.min(sp*dt,d);p.moving=true;p.face=Math.sign(dx)||p.face;}
+    bound(p);parentInteract(p);
+    return;
+  }
+  if(N.state==='leave'){
+    if(p.carried.length){N.state='help';N.helpT=0;return;}
+    const dx=1070-p.x,dy=470-p.y,d=Math.hypot(dx,dy);
+    if(d<8){N.state='away';N.timer=rand(16,22);return;}
+    p.x+=dx/d*170*dt;p.y+=dy/d*170*dt;p.moving=true;p.face=1;
+  }
+}
+
+function update(dt){
+  G.t+=dt;G.time-=dt;
+  if(G.time<=10&&Math.ceil(G.time)<G.lastTick){G.lastTick=Math.ceil(G.time);SFX.tick();}
+  if(G.time<=0){G.time=0;endGame();return;}
+  G.shake=Math.max(0,G.shake-dt*30);G.hack=Math.max(0,G.hack-dt);
+
+  if(G.hack<=0)for(let i=0;i<2;i++){
+    G.spawn.tr[i]-=dt;
+    if(G.spawn.tr[i]<=0){
+      const dir=i===0?1:-1,len=270,[num,dest]=pick(DEST);
+      G.trams.push({x:dir>0?-len-20:W+20,y:TRACKS[i],dir,len,num,dest,speed:rand(200,270),hit:new Set(),bubble:null});
+      G.spawn.tr[i]=rand(3,6);
+    }
+  }
+  for(const tr of G.trams){if(G.hack<=0)tr.x+=tr.dir*tr.speed*dt;if(tr.bubble)tr.bubble.t-=dt;}
+  G.trams=G.trams.filter(tr=>tr.dir>0?tr.x<W+40:tr.x+tr.len>-40);
+
+  G.spawn.item-=dt;
+  if(G.spawn.item<=0){if(G.items.length<5){const p=freeSpot();if(p)G.items.push({...p,gold:Math.random()<.09,ph:rand(0,6)});}G.spawn.item=rand(1.6,3);}
+  G.spawn.veg-=dt;
+  if(G.spawn.veg<=0&&!G.vegeta&&!G.players.some(p=>p.super>0)){const p=freeSpot(200);if(p){G.vegeta={...p,t:10};SFX.veg();}G.spawn.veg=rand(16,22);}
+  if(G.vegeta){G.vegeta.t-=dt;if(G.vegeta.t<=0)G.vegeta=null;}
+  if(G.players.some(p=>p.kind==='tata')){
+    G.spawn.velo-=dt;
+    if(G.spawn.velo<=0&&!G.velo){const p=freeSpot(200);if(p)G.velo={...p,t:10};G.spawn.velo=rand(14,20);}
+    if(G.velo){G.velo.t-=dt;if(G.velo.t<=0)G.velo=null;}
+  }
+
+  for(const p of G.players){
+    if(p.bubble)p.bubble.t-=dt;
+    p.super=Math.max(0,p.super-dt);p.velo=Math.max(0,p.velo-dt);p.reading=Math.max(0,p.reading-dt);
+    const inp=inputFor(p),sp=parentSpeed(p);
+    p.x+=inp.x*sp*dt;p.y+=inp.y*sp*dt;p.moving=Math.hypot(inp.x,inp.y)>.05;if(Math.abs(inp.x)>.1)p.face=Math.sign(inp.x);
+    bound(p);parentInteract(p);
+  }
+  updateNpc(dt);
+  for(const b of G.babies)updateBaby(b,dt);
+
+  const F=G.friend;if(F.bubble)F.bubble.t-=dt;F.wave=Math.max(0,F.wave-dt);F.cd-=dt;
+  if(F.cd<=0&&!F.holding){setBubble(F,pick(L.friendIdle),2);F.wave=2;F.cd=rand(9,14);}
+
+  const K=G.baka;if(K.bubble)K.bubble.t-=dt;K.wave=Math.max(0,K.wave-dt);K.moving=false;
+  if(K.state==='away'){K.timer-=dt;if(K.timer<=0){K.state='enter';K.x=-40;}}
+  else if(K.state==='enter'){K.x+=110*dt;K.moving=true;if(K.x>=380){K.x=380;K.state='here';K.timer=8;K.wave=3;setBubble(K,'Gdje je bakino sunce?!',2.2);}}
+  else if(K.state==='here'){K.timer-=dt;if(K.timer<=0)K.state='leave';}
+  else if(K.state==='leave'){K.x-=120*dt;K.moving=true;if(K.x<-50){K.state='away';K.timer=rand(20,28);}}
+
+  const MK=G.marin;if(MK.bubble)MK.bubble.t-=dt;MK.wave=Math.max(0,MK.wave-dt);MK.moving=false;
+  if(MK.state==='away'){MK.timer-=dt;if(MK.timer<=0){MK.state='enter';MK.x=-40;}}
+  else if(MK.state==='enter'){MK.x+=140*dt;MK.moving=true;if(MK.x>=430){MK.x=430;MK.state='here';MK.timer=9;MK.wave=2;MK.idleCd=3;setBubble(MK,'Bok! Ja sam programer.',2.2);}}
+  else if(MK.state==='here'){MK.timer-=dt;MK.idleCd-=dt;
+    if(MK.idleCd<=0&&!(MK.bubble&&MK.bubble.t>0)){setBubble(MK,pick(L.marinIdle),2.2);MK.idleCd=3;}
+    if(MK.timer<=0){MK.state='leave';setBubble(MK,'Idem u Konzum, bok!',1.6);}}
+  else if(MK.state==='leave'){MK.x-=150*dt;MK.moving=true;if(MK.x<-50){MK.state='away';MK.timer=rand(24,32);}}
+
+  const D=G.dida;if(D.bubble)D.bubble.t-=dt;const wasCd=D.cd>0;D.cd-=dt;D.idleCd-=dt;
+  if(wasCd&&D.cd<=0)setBubble(D,'Pssst, djeco! Zovem tramvaj, pa idemo jesti!',2.2);
+  else if(D.idleCd<=0&&!(D.bubble&&D.bubble.t>0)){setBubble(D,pick(L.didaFood),2.2);D.idleCd=rand(8,12);}
+
+  const CH=G.chat;CH.cd-=dt;if(CH.show)CH.show.t-=dt;
+  if(CH.cd<=0){
+    const [from,msg]=pick(CHAT);CH.show={from,msg,t:4.5};CH.cd=rand(14,20);SFX.ping();
+    const pl=pick(G.players);pl.reading=2.5;setBubble(pl,pick(pl.kind==='mama'?['Samo da vidim grupu...','Čekaj, baka piše...','Opet Pleme Varnica...']:['Samo da vidim tko piše...','Dida opet šalje hranu...','Je li to netko našao moj Velo?']),2);
+  }
+
+  for(const p of G.pigeons){
+    const near=G.babies.some(b=>b.state==='free'&&dist(b,p)<50)||G.players.some(pl=>dist(pl,p)<50);
+    if(near&&!(p.z>0)){const a=Math.atan2(p.y-470,p.x-200)+rand(-1,1);p.vx=Math.cos(a)*220;p.vy=Math.sin(a)*120;p.z=1;p.fly=.9;p.dir=Math.sign(p.vx)||1;}
+    if(p.z>0){p.fly-=dt;p.x+=p.vx*dt;p.y+=p.vy*dt;p.z=Math.sin(Math.max(0,p.fly)/.9*Math.PI)*40+.01;if(p.fly<=0)p.z=0;}
+    else{p.cd-=dt;if(p.cd<=0){p.vx=rand(-30,30);p.vy=rand(-15,15);p.cd=rand(.5,2);if(p.vx)p.dir=Math.sign(p.vx);}p.x+=p.vx*dt*.5;p.y+=p.vy*dt*.5;}
+    p.x=clamp(p.x,310,480);p.y=clamp(p.y,450,625);
+  }
+  for(const pp of G.pops){pp.t-=dt;pp.y-=40*dt;}
+  G.pops=G.pops.filter(p=>p.t>0);
+
+  if(G.nerves<=0){G.nervesOut=true;endGame();}
+}
+
+/* ====== RENDER ====== */
+function drawParent(c,p){
+  if(p.kind==='mama'){drawMama(c,p);}
+  else{
+    if(p.super>0){const pr=1+Math.sin(NOW*14)*.08;c.fillStyle='rgba(255,163,26,.3)';c.beginPath();c.ellipse(p.x,p.y-55,44*pr,66*pr,0,0,Math.PI*2);c.fill();}
+    drawTata(c,p);
+    p.carried.forEach((cb,i)=>drawBaby(c,cb,p.x+(i?-24:24),p.y-46,{flail:true,armsUp:true,noShadow:true,sad:true,still:true}));
+  }
+  if(p.velo>0){for(let i=0;i<3;i++)line(c,p.x-(p.face||1)*(26+i*8),p.y-30-i*18,p.x-(p.face||1)*(46+i*8),p.y-30-i*18,'rgba(155,231,255,.9)',3);}
+  if(p.reading>0&&p.kind==='tata'){c.fillStyle='#dcf8c6';c.fillRect(p.x+18,p.y-76,7,13);}
+  const nm=(p.kind==='mama'?'Mama ':'Tata ')+p.name;
+  label(c,p.x,p.y,p.ai?nm:G.online?(G.players[G.localIdx]===p?'▲ '+nm+' (ti)':nm):(G.mode==='both'?nm+(p.scheme==='wasd'?' · WASD':' · strelice'):'▲ '+nm),p.ai?'rgba(91,103,133,.9)':(p.kind==='mama'?'rgba(226,68,92,.95)':'rgba(27,79,156,.95)'));
+}
+
+function drawVelo(c,v){
+  if(v.t<3&&Math.floor(NOW*8)%2)return;
+  const bob=Math.sin(NOW*5)*3,x=v.x,y=v.y-10+bob;
+  ell(c,v.x,v.y+2,15,4,'rgba(0,0,0,.2)');
+  c.fillStyle='rgba(155,231,255,.35)';c.beginPath();c.arc(x,y-6,26+Math.sin(NOW*7)*3,0,Math.PI*2);c.fill();
+  ell(c,x,y-2,16,7,'#9aa4b5',true);ell(c,x,y-8,16,7,'#ffffff',true);
+  c.fillStyle='#1b4f9c';c.font='900 8px Nunito, sans-serif';c.textAlign='center';c.fillText('VELO',x,y-5);
+  label(c,v.x,v.y,'VELO','rgba(27,79,156,.9)');
+}
+
+function render(){
+  const c=ctx;c.setTransform(DPR,0,0,DPR,0,0);
+  const sh=G.shake;c.save();if(sh>0)c.translate(rand(-sh,sh)*.4,rand(-sh,sh)*.4);
+  c.drawImage(bgCanvas,0,0,W,H);
+  const list=[];
+  for(const tr of G.trams)list.push({y:tr.y,d:()=>drawTram(c,tr)});
+  for(const it of G.items)list.push({y:it.y,d:()=>drawBrushItem(c,it)});
+  for(const p of G.pigeons)list.push({y:p.y,d:()=>drawPigeon(c,p)});
+  if(G.vegeta){const v=G.vegeta;list.push({y:v.y,d:()=>drawVegeta(c,v)});}
+  if(G.velo){const v=G.velo;list.push({y:v.y,d:()=>drawVelo(c,v)});}
+  list.push({y:G.friend.y,d:()=>{drawFriend(c,G.friend);label(c,G.friend.x,G.friend.y,'Prijatelj beskućnik');}});
+  if(G.baka.state!=='away')list.push({y:G.baka.y,d:()=>{drawBaka(c,G.baka);label(c,G.baka.x,G.baka.y,'Baka '+CFG.baka,'rgba(197,90,138,.95)');}});
+  if(G.marin.state!=='away')list.push({y:G.marin.y,d:()=>{drawMarin(c,G.marin);label(c,G.marin.x,G.marin.y,'Strika Marin','rgba(45,49,66,.95)');}});
+  list.push({y:G.dida.y,d:()=>{drawDida(c,G.dida);label(c,G.dida.x,G.dida.y,'Dida '+CFG.dida,'rgba(107,91,62,.95)');}});
+  for(const p of G.players)list.push({y:p.y,d:()=>drawParent(c,p)});
+  if(G.npc&&G.npc.state!=='away'){const p=G.npc.p;list.push({y:p.y,d:()=>drawParent(c,p)});}
+  for(const b of G.babies){
+    if(b.state==='carried'||b.state==='held')continue;
+    list.push({y:b.state==='stroller'?STROLLER.y+5+b.idx:b.y,d:()=>{
+      if(b.safe>0&&b.state==='free'&&Math.floor(NOW*12)%2)c.globalAlpha=.5;
+      if(b.shield>0){c.fillStyle='rgba(255,156,207,.35)';c.beginPath();c.ellipse(b.x,b.y-26,26,34,0,0,Math.PI*2);c.fill();
+        for(let i=0;i<3;i++){const a=NOW*3+i*2.1;c.font='14px sans-serif';c.textAlign='center';c.fillStyle='#e2447f';c.fillText('♥',b.x+Math.cos(a)*26,b.y-28+Math.sin(a)*30);}}
+      drawBaby(c,b,b.x,b.y,{sad:b.state==='stroller'||b.cry>0});c.globalAlpha=1;
+      if(b.cry>0)for(let i=0;i<2;i++){const p=(NOW*2+i/2)%1;ell(c,b.x+(i?9:-9),b.y-36+p*16,2.5,3.5,'rgba(120,190,255,'+(1-p)+')');}
+      if(b.state==='free')label(c,b.x,b.y,b.name,b.color);
+      if(b.state==='stroller'){c.fillStyle='#fff';c.font='900 12px Nunito, sans-serif';c.textAlign='center';c.fillText(Math.ceil(b.timer)+' s',b.x,b.y-66);}
+    }});
+  }
+  list.sort((a,b)=>a.y-b.y).forEach(o=>o.d());
+
+  const bb=(e,x,y,col)=>{if(e.bubble&&e.bubble.t>0)bubble(c,x,y,e.bubble.text,col);};
+  for(const p of G.players)bb(p,p.x,p.y-(p.kind==='mama'?108:128),p.kind==='mama'?'#ffd6dd':'#d6ecff');
+  if(G.npc&&G.npc.state!=='away'){const p=G.npc.p;bb(p,p.x,p.y-(p.kind==='mama'?108:128),'#eef1f6');}
+  bb(G.friend,G.friend.x,G.friend.y-(G.friend.holding?178:100),'#fff6e3');
+  if(G.baka.state!=='away')bb(G.baka,G.baka.x,G.baka.y-110,'#ffe3f0');
+  if(G.marin.state!=='away')bb(G.marin,G.marin.x,G.marin.y-130,'#e3fff2');
+  bb(G.dida,G.dida.x,G.dida.y-100,'#f3ead6');
+  for(const b of G.babies){if(b.state==='free'||b.state==='carried')bb(b,b.x,b.y-(b.state==='carried'?110:62),'#fff');}
+  for(const tr of G.trams)if(tr.bubble&&tr.bubble.t>0)bubble(c,tr.dir>0?tr.x+tr.len-20:tr.x+20,tr.y-78,tr.bubble.text,'#ffe8b0');
+
+  for(const p of G.pops){
+    c.globalAlpha=Math.min(1,p.t*2);c.font='21px "Lilita One", "Trebuchet MS", sans-serif';c.textAlign='center';
+    c.lineWidth=5;c.strokeStyle=INK;c.strokeText(p.text,p.x,p.y);c.fillStyle=p.col;c.fillText(p.text,p.x,p.y);c.globalAlpha=1;
+  }
+  c.restore();
+  drawHUD(c);
+  drawChat(c);
+  if(joy&&joy.active){
+    const r=cv.getBoundingClientRect(),k=W/r.width;
+    const ox=(joy.ox-r.left)*k,oy=(joy.oy-r.top)*k,cx=(joy.cx-r.left)*k,cy=(joy.cy-r.top)*k;
+    c.fillStyle='rgba(255,255,255,.18)';c.beginPath();c.arc(ox,oy,50,0,Math.PI*2);c.fill();
+    const dx=cx-ox,dy=cy-oy,m=Math.hypot(dx,dy),mm=Math.min(m,50);
+    c.fillStyle='rgba(255,255,255,.55)';c.beginPath();c.arc(ox+(m?dx/m*mm:0),oy+(m?dy/m*mm:0),22,0,Math.PI*2);c.fill();
+  }
+  if(G.paused){
+    c.fillStyle='rgba(15,47,99,.7)';c.fillRect(0,0,W,H);
+    c.fillStyle='#fff';c.font='60px "Lilita One", sans-serif';c.textAlign='center';c.fillText('PAUZA',W/2,H/2);
+    c.font='800 18px Nunito, sans-serif';c.fillText('Djeca spavaju (navodno). Pritisni P ili Pauza za nastavak.',W/2,H/2+40);
+  }
+}
+
+function drawHUD(c){
+  c.fillStyle='rgba(15,47,99,.92)';c.strokeStyle=INK;c.lineWidth=2;rr(c,10,8,290,56,12);c.fill();c.stroke();
+  const who=G.mode==='both'?'MAMA + TATA':G.mode==='mama'?'MAMA LUCIJA':'TATA IVAN';
+  c.textAlign='left';c.fillStyle='#fff';c.font='800 13px Nunito, sans-serif';c.fillText(who,24,28);
+  c.font='28px "Lilita One", sans-serif';c.fillStyle='#ffd84a';c.fillText(Math.floor(G.score).toLocaleString('hr-HR'),24,57);
+  G.babies.forEach((b,i)=>{
+    const x=200+i*50;ell(c,x,36,16,16,b.color,true);
+    c.fillStyle=INK;c.font='16px "Lilita One", sans-serif';c.textAlign='center';c.fillText(b.name[0],x,42);
+    const st=b.state==='stroller'?'kolica':b.state==='carried'?'u rukama':b.state==='held'?'kod frenda':'slobod'+gx(b,'an','na');
+    c.fillStyle=b.state==='stroller'||b.state==='carried'?'#8fe0c0':'#ffb3c0';c.font='800 9px Nunito, sans-serif';c.fillText(st,x,62);
+  });
+  c.fillStyle='rgba(15,47,99,.92)';c.strokeStyle=INK;c.lineWidth=2;rr(c,W-250,8,240,56,12);c.fill();c.stroke();
+  c.fillStyle='#fff';c.font='800 13px Nunito, sans-serif';c.textAlign='left';c.fillText('ŽIVCI',W-236,28);
+  c.textAlign='right';c.fillText(Math.ceil(G.nerves)+' / 100',W-24,28);
+  const pct=G.nerves/100,col=pct>.5?'#3fb68b':pct>.25?'#ffa31a':'#e2445c';
+  c.fillStyle='#0b2147';rr(c,W-236,36,212,16,8);c.fill();
+  if(pct>0){c.fillStyle=col;rr(c,W-236,36,Math.max(16,212*pct),16,8);c.fill();}
+  c.strokeStyle=INK;rr(c,W-236,36,212,16,8);c.stroke();
+  const tl=Math.ceil(G.time),low=G.time<=10;
+  c.fillStyle='#111';c.strokeStyle=INK;c.lineWidth=2;rr(c,W/2-70,8,140,46,10);c.fill();c.stroke();
+  c.fillStyle=low&&Math.floor(NOW*4)%2?'#ff4d4d':'#ffa31a';c.font='40px VT323, monospace';c.textAlign='center';
+  c.fillText(`${Math.floor(tl/60)}:${String(tl%60).padStart(2,'0')}`,W/2,44);
+  const banners=[];
+  for(const p of G.players){
+    if(p.super>0)banners.push([`SUPER ${p.kind==='mama'?'MAMA':'TATA'}! ${Math.ceil(p.super)} s`,'#ff8a3d']);
+    if(p.velo>0)banners.push([`TURBO TATA (VELO) ${Math.ceil(p.velo)} s`,'#1b4f9c']);
+  }
+  if(G.hack>0)banners.push([`ZET HAKIRAN · nema tramvaja ${Math.ceil(G.hack)} s`,'#1f7756']);
+  if(G.npc&&G.npc.state==='help')banners.push([`${G.npc.p.kind==='tata'?'Tata':'Mama'} pomaže ${Math.max(0,Math.ceil(G.npc.helpT))} s`,'#5b6785']);
+  if(G.vegeta&&!banners.length)banners.push(['Vegeta na ulici! Pojedi je za superbrzinu!','#c9302c']);
+  banners.slice(0,2).forEach(([t,col],i)=>{
+    c.font='15px "Lilita One", sans-serif';const w=c.measureText(t).width+28;
+    c.fillStyle=col;c.strokeStyle=INK;c.lineWidth=2;rr(c,W/2-w/2,58+i*30,w,26,13);c.fill();c.stroke();
+    c.fillStyle='#fff';c.textAlign='center';c.fillText(t,W/2,76+i*30);
+  });
+}
+
+/* ====== LOOP ====== */
+function frame(ts){
+  raf=requestAnimationFrame(frame);
+  NOW=ts/1000;
+  const dt=Math.min(.05,(ts-last)/1000||0);last=ts;
+  if(!G)return;
+  if(G.remote){if(!G.over){guestFrame(dt);render();}return;}
+  if(!G.paused&&!G.over)update(dt);
+  if(G&&!G.over)render();
+  if(G&&G.online&&NET&&NET.role==='host'){NET.sendT-=dt;if(NET.sendT<=0){NET.sendT=G.over?.3:.05;hostSend();}}
+}
+
+/* ====== SCREENS / STORAGE ====== */
+const $=id=>document.getElementById(id);
+function getBest(mode){try{return +localStorage.getItem('opTramvaj.roditelji.'+mode)||0;}catch(e){return 0;}}
+function setBest(mode,v){try{localStorage.setItem('opTramvaj.roditelji.'+mode,String(v));}catch(e){}}
+
+function rank(s){
+  if(s<800)return'Roditelj početnik';
+  if(s<1600)return'Iskusni roditelj';
+  if(s<2600)return'Šef kolica';
+  if(s<3800)return'Roditelj godine';
+  return'Legenda Plemena Varnica';
+}
+
+let lastMode='mama';
+function show(id){['menu','play','over'].forEach(s=>$(s).hidden=s!==id);}
+
+async function start(mode){
+  initAudio();lastMode=mode;
+  try{await document.fonts.ready;}catch(e){}
+  if(!bgCanvas)setupCanvas();
+  newGame(mode);show('play');
+  $('btn-pause').textContent='Pauza';
+  window.scrollTo({top:$('play').offsetTop-8});
+}
+
+function togglePause(){if(!G||G.over||G.remote)return;G.paused=!G.paused;$('btn-pause').textContent=G.paused?'Nastavi':'Pauza';}
+function toggleMute(){muted=!muted;$('btn-mute').textContent='Zvuk: '+(muted?'ne':'da');}
+
+$('p-mama').onclick=()=>start('mama');
+$('p-tata').onclick=()=>start('tata');
+$('p-two').onclick=()=>start('both');
+$('btn-pause').onclick=togglePause;
+$('btn-mute').onclick=toggleMute;
+$('btn-quit').onclick=()=>{G=null;leaveOnline();show('menu');};
+
+const GAMEKEYS=['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Space'];
+addEventListener('keydown',e=>{
+  if(G&&!G.over&&GAMEKEYS.includes(e.code))e.preventDefault();
+  KEYS[e.code]=true;
+  if(G&&!G.over&&(e.code==='KeyP'||e.code==='Escape'))togglePause();
+  if(e.code==='KeyM')toggleMute();
+});
+addEventListener('keyup',e=>{KEYS[e.code]=false;});
+addEventListener('blur',()=>{for(const k in KEYS)KEYS[k]=false;});
+document.addEventListener('visibilitychange',()=>{if(document.hidden&&G&&!G.over&&!G.paused)togglePause();});
+
+cv.addEventListener('pointerdown',e=>{if(!G)return;initAudio();joy={id:e.pointerId,active:true,ox:e.clientX,oy:e.clientY,cx:e.clientX,cy:e.clientY};try{cv.setPointerCapture(e.pointerId);}catch(_){}e.preventDefault();});
+cv.addEventListener('pointermove',e=>{if(joy&&joy.id===e.pointerId){joy.cx=e.clientX;joy.cy=e.clientY;}});
+const endJoy=e=>{if(joy&&joy.id===e.pointerId)joy=null;};
+cv.addEventListener('pointerup',endJoy);cv.addEventListener('pointercancel',endJoy);
+
+/* ====== END SCREEN (shared by local and online games) ====== */
+function endSummary(){
+  return {mode:G.mode,on:G.online?1:0,no:G.nervesOut?1:0,sc:Math.floor(G.score),t:Math.round(G.t),nv:Math.ceil(G.nerves),
+    st:G.stats,bs:G.babies.map(b=>b.stats)};
+}
+function endGame(){
+  G.over=true;SFX.end();
+  G.endS=endSummary();
+  renderEnd(G.endS,true);
+}
+function renderEnd(S,isHost){
+  const score=S.sc,bestKey=S.on?'online':S.mode;
+  const prev=getBest(bestKey),isNew=isHost&&!S.no&&score>prev;if(isNew)setBest(bestKey,score);
+  const title=S.no?'Živci su pukli!':rank(score);
+  const quotes=S.no?['Ivane, ti ih kupaš večeras.','Mama ide na kavu. Sama. Pet minuta.','Tko je kupio OVOLIKO čokolade?']:['Dobro, priznajem, bilo je malo i smiješno.','Sve ide u perilicu. I djeca.','Ivane, ovo smo dobro odradili.'];
+  const babies=S.bs.map((st,i)=>({...BABIES[i],idx:i,stats:st}));
+  const fam=`<div class="card"><h3 style="color:#1b4f9c">${S.mode==='both'?'Mama i tata':S.mode==='mama'?'Mama Lucija':'Tata Ivan'}</h3>
+    <div class="pts">${score.toLocaleString('hr-HR')}</div>
+    <dl><dt>Uhvaćeno djece</dt><dd>${S.st.catches}</dd><dt>Vraćeno u kolica</dt><dd>${S.st.dropped}</dd><dt>Oduzetih čokolada</dt><dd>${S.st.taken}</dd>
+    <dt>Preostalo živaca</dt><dd>${S.nv} / 100</dd><dt>Preživjeli ste</dt><dd>${S.t} s</dd></dl></div>`;
+  const cards=babies.map(b=>`<div class="card"><h3 style="color:${b.idx?'#c85a12':'#1f7756'}">${b.name}</h3>
+    <dl><dt>Pipnutih tramvaja</dt><dd>${b.stats.trams}</dd><dt>Sekundi u naručju prijatelja</dt><dd>${Math.round(b.stats.hug)}</dd>
+    <dt>Pojedenih čokolada</dt><dd>${b.stats.choc}</dd><dt>Puta ${gx(b,'uhvaćen','uhvaćena')}</dt><dd>${b.stats.caught}×</dd>${b.idx?`<dt>Plakala jer joj je Toma oteo čokoladu</dt><dd>${b.stats.cried}×</dd>`:`<dt>Oteo Eleni čokolada</dt><dd>${b.stats.stolen}</dd>`}</dl></div>`).join('');
+  const guest=S.on&&!isHost;
+  $('over').innerHTML=`<span class="led">Zadnja stanica</span>
+    <h1 style="font-size:clamp(34px,6vw,56px)">${title}</h1>
+    <p class="quote"><em>Mama ${CFG.mama}:</em> „${pick(quotes)}”<br><em style="color:#1b4f9c">Tata ${CFG.tata}:</em> „${pick(['Ja sam samo tražio Velo...','Ja sam ih skoro sve uhvatio.','Jesmo li sad gotovi? Gdje mi je Velo?'])}”</p>
+    <div class="result">${fam}${cards}</div>
+    <div class="wa"><div class="wa-h">${CFG.grupa}</div>
+      <p><b>Lucija:</b> ${S.no?'Ne pitajte. Živci su pukli.':`Preživjeli smo! ${score.toLocaleString('hr-HR')} bodova.`} Toma je pipnuo ${babies[0].stats.trams} tramvaja, Elena je pojela ${babies[1].stats.choc} ${chocWord(babies[1].stats.choc)}.</p>
+      <p><b>Baka Suzana:</b> ${pick(['Bravo, bakino sunce!! ☀️🌹','Jesu popili sirup? I jesu jeli nešto osim čokolade?','Ajme, kako su slatki!! ❤️'])}</p>
+      <p><b>Dida Ivica:</b> ${pick(['Bravo! Dođite sutra, radim sarmu.','A sad svi na palačinke!','Za ovo slijedi čobanac. Faca od čobanca!'])}</p>
+      <p><b>Strika Marin:</b> Ja sam programer. Ja sam ovo napravio. 😎</p>
+      <p><b>Ivan:</b> Je li netko vidio moj Velo?</p></div>
+    <p class="best">Rezultat: ${score.toLocaleString('hr-HR')}${guest?'':` · Rekord: ${Math.max(isNew?score:0,prev).toLocaleString('hr-HR')}`}${isNew?'<span class="new">NOVI REKORD!</span>':''}</p>
+    <div class="actions">${guest?'<button id="again" disabled>Čekam da mama pokrene novu igru…</button>':'<button class="b-two" id="again">Još jednom!</button>'}<button id="tomenu">Izbornik</button></div>`;
+  show('over');
+  if(!guest)$('again').onclick=()=>S.on?startOnline():start(lastMode);
+  $('tomenu').onclick=()=>{G=null;leaveOnline();show('menu');};
+}
+
+/* ====== ONLINE: dva uređaja ====== */
+let ROOM=null,NET=null;
+const ST=['free','held','carried','stroller'];
+function setOStatus(t){$('o-status').textContent=t;}
+
+(async()=>{
+  try{if(window.claude&&typeof window.claude.use==='function')ROOM=await window.claude.use('room');}catch(e){ROOM=null;}
+  if(!ROOM){setOStatus('Igra na dva uređaja radi samo kad je igra otvorena na claude.ai i kad si prijavljen.');return;}
+  $('o-host').disabled=false;$('o-join').disabled=false;
+  setOStatus('Spremno. Jedan uređaj napravi igru, drugi upiše kod.');
+})();
+
+for(const k of Object.keys(SFX)){
+  const f=SFX[k];
+  SFX[k]=(...a)=>{f(...a);if(NET&&NET.role==='host'&&G&&G.online){NET.sfxId++;NET.sfxLog.push([NET.sfxId,k]);if(NET.sfxLog.length>8)NET.sfxLog.shift();}};
+}
+
+async function leaveOnline(){
+  const n=NET;NET=null;
+  $('o-start').hidden=true;$('o-host').disabled=!ROOM;$('o-join').disabled=!ROOM;
+  if(n&&n.nr){try{await n.nr.leave();}catch(e){}}
+}
+
+async function hostGame(){
+  if(!ROOM)return;initAudio();
+  await leaveOnline();
+  const code=String(Math.floor(1000+Math.random()*9000));
+  setOStatus('Otvaram igru…');$('o-host').disabled=true;
+  let nr;
+  try{nr=await ROOM.join('tramvaj-'+code);}catch(e){setOStatus('Ne mogu otvoriti igru. Pokušaj ponovno za koju sekundu.');$('o-host').disabled=false;return;}
+  NET={role:'host',code,nr,guest:false,input:{x:0,y:0},sendT:0,sfxId:0,sfxLog:[]};
+  nr.presence({r:'h'}).catch(()=>{});
+  nr.onPeers(ch=>{
+    if(!NET||NET.nr!==nr)return;
+    const g=ch.peers.find(p=>!p.isMe&&p.presence&&p.presence.r==='g');
+    const was=NET.guest;NET.guest=!!g;
+    if(g&&g.presence.in){const i=g.presence.in;const x=clamp(+i.x||0,-1,1),y=clamp(+i.y||0,-1,1);NET.input={x,y};}
+    if(!g)NET.input={x:0,y:0};
+    if(G&&G.online&&was&&!g){pop(W/2,320,'Tata se odspojio','#ffb3c0');}
+    if(!G||!G.online)setOStatus(g?`Tata je spojen! Kod igre: ${code}. Pritisni „Kreni”.`:`Kod igre: ${code}. Na drugom uređaju upiši ovaj kod i pritisni „Pridruži se”.`);
+  },()=>{setOStatus('Veza je prekinuta.');});
+  $('o-start').hidden=false;
+  setOStatus(`Kod igre: ${code}. Na drugom uređaju upiši ovaj kod i pritisni „Pridruži se”.`);
+}
+
+async function startOnline(){
+  if(!NET||NET.role!=='host')return;
+  initAudio();
+  try{await document.fonts.ready;}catch(e){}
+  if(!bgCanvas)setupCanvas();
+  newGame('both');
+  G.players[0].scheme='both';G.players[1].scheme='remote';
+  G.online=true;G.localIdx=0;G.gid=Math.floor(Math.random()*1e6);
+  show('play');$('btn-pause').textContent='Pauza';
+  window.scrollTo({top:$('play').offsetTop-8});
+}
+
+async function joinGame(){
+  if(!ROOM)return;initAudio();
+  const code=($('o-code').value||'').trim();
+  if(!/^\d{4}$/.test(code)){setOStatus('Upiši kod od 4 znamenke s drugog uređaja.');return;}
+  await leaveOnline();
+  setOStatus('Spajam se…');$('o-join').disabled=true;
+  let nr;
+  try{nr=await ROOM.join('tramvaj-'+code);}catch(e){setOStatus('Ne mogu se spojiti. Provjeri kod i pokušaj ponovno.');$('o-join').disabled=false;return;}
+  NET={role:'guest',code,nr,hostSeen:false,raw:null,lastSfx:null,lastIn:'',endGid:null};
+  nr.presence({r:'g',in:{x:0,y:0}}).catch(()=>{});
+  try{await document.fonts.ready;}catch(e){}
+  if(!bgCanvas)setupCanvas();
+  setOStatus('Tražim mamu s tim kodom…');
+  nr.onPeers(ch=>{
+    if(!NET||NET.nr!==nr)return;
+    const h=ch.peers.find(p=>!p.isMe&&p.presence&&p.presence.r==='h');
+    if(!h){
+      if(NET.hostSeen){G=null;leaveOnline();show('menu');setOStatus('Mama je izašla iz igre.');}
+      return;
+    }
+    NET.hostSeen=true;
+    const s=h.presence.s;
+    if(!s){if(!G)setOStatus('Spojen! Čekam da mama pritisne „Kreni”.');return;}
+    if(s!==NET.raw){NET.raw=s;applySnap(s);}
+  },()=>{setOStatus('Veza je prekinuta.');});
+}
+
+/* ---- host: snapshot ---- */
+function snap(){
+  const r=Math.round,f1=v=>Math.round(v*10)/10;
+  const bub=e=>e&&e.bubble&&e.bubble.t>0?[e.bubble.text.slice(0,70),f1(e.bubble.t)]:0;
+  const npc=G.npc&&G.npc.state!=='away'?G.npc.p:null;
+  return {
+    g:G.gid,o:G.over?1:0,pa:G.paused?1:0,t:f1(G.time),tt:f1(G.t),nv:Math.ceil(G.nerves),sc:Math.floor(G.score),hk:f1(G.hack),sh:r(G.shake),
+    B:G.babies.map(b=>[r(b.x),r(b.y),ST.indexOf(b.state),b.brushes,b.dir,b.moving?1:0,b.happy>0?1:0,f1(b.shield),f1(b.cry),b.safe>0?1:0,Math.ceil(b.timer),bub(b)]),
+    P:G.players.map(p=>[r(p.x),r(p.y),p.face,p.moving?1:0,f1(p.super),f1(p.velo),p.reading>0?1:0,p.carried.map(c=>c.idx),bub(p)]),
+    T:G.trams.map(t=>[r(t.x),t.y,t.dir,t.special?0:t.num,t.special?'':t.dest,r(t.speed),t.special?1:0,bub(t)]),
+    I:G.items.map(i=>[r(i.x),r(i.y),i.gold?1:0]),
+    V:G.vegeta?[r(G.vegeta.x),r(G.vegeta.y),f1(G.vegeta.t)]:0,
+    VL:G.velo?[r(G.velo.x),r(G.velo.y),f1(G.velo.t)]:0,
+    F:[G.friend.holding?G.friend.holding.idx:-1,G.friend.wave>0?1:0,bub(G.friend)],
+    K:[G.baka.state==='away'?0:1,r(G.baka.x),r(G.baka.y),G.baka.moving?1:0,G.baka.wave>0?1:0,bub(G.baka)],
+    M:[G.marin.state==='away'?0:1,r(G.marin.x),r(G.marin.y),G.marin.moving?1:0,G.marin.wave>0?1:0,bub(G.marin)],
+    D:[f1(G.dida.cd),bub(G.dida)],
+    N:npc?[npc.kind,r(npc.x),r(npc.y),npc.face,npc.moving?1:0,npc.carried.map(c=>c.idx),bub(npc),G.npc.state==='help'?f1(G.npc.helpT):0]:0,
+    PG:G.pigeons.map(p=>[r(p.x),r(p.y),p.dir,r(p.z||0)]),
+    PO:G.pops.slice(-5).map(p=>[r(p.x),r(p.y),p.text.slice(0,40),p.col,f1(p.t)]),
+    CH:G.chat.show&&G.chat.show.t>0?[G.chat.show.from,G.chat.show.msg.slice(0,80),f1(G.chat.show.t)]:0,
+    SX:NET.sfxLog.slice(),
+    E:G.over&&G.endS?G.endS:0
+  };
+}
+const ENC=new TextEncoder();
+function hostSend(){
+  let s=snap();
+  if(ENC.encode(JSON.stringify(s)).length>3800){s.PO=[];}
+  if(ENC.encode(JSON.stringify(s)).length>3800){for(const k of ['B','P','T'])s[k].forEach(a=>{a[a.length-1]=0;});}
+  NET.nr.presence({r:'h',s}).catch(()=>{});
+}
+
+/* ---- guest: rebuild view from snapshot ---- */
+function viewG(gid){
+  return {remote:true,online:true,localIdx:1,mode:'both',gid,t:0,time:CFG.time,nerves:100,score:0,
+    players:[{...makeParent('mama','none'),tx:430,ty:575},{...makeParent('tata','local'),tx:570,ty:575}],
+    npc:null,babies:[makeBaby(0),makeBaby(1)],trams:[],items:[],pops:[],vegeta:null,velo:null,hack:0,
+    friend:{x:FRIEND.x,y:FRIEND.y,holding:null,bubble:null,wave:0},
+    baka:{state:'away',x:-40,y:600,moving:false,bubble:null,wave:0},
+    marin:{state:'away',x:-40,y:458,moving:false,bubble:null,wave:0},
+    dida:{x:665,y:342,cd:8,bubble:null,inGame:true},
+    chat:{show:null},pigeons:[],paused:false,over:false,shake:0,stats:{}};
+}
+function setPos(e,x,y,first){e.tx=x;e.ty=y;if(first||e.x===undefined||Math.hypot(e.x-x,e.y-y)>150){e.x=x;e.y=y;}}
+function unb(a){return a?{text:a[0],t:a[1]}:null;}
+function applySnap(s){
+  let first=false;
+  if(!G||!G.remote||G.gid!==s.g){G=viewG(s.g);first=true;if(!s.o){show('play');$('btn-pause').textContent='Pauza';}}
+  G.paused=!!s.pa;G.time=s.t;G.t=s.tt;G.nerves=s.nv;G.score=s.sc;G.hack=s.hk;G.shake=s.sh;
+  s.B.forEach((a,i)=>{const b=G.babies[i];setPos(b,a[0],a[1],first);b.state=ST[a[2]]||'free';b.brushes=a[3];b.dir=a[4];b.moving=!!a[5];b.happy=a[6];b.shield=a[7];b.cry=a[8];b.safe=a[9];b.timer=a[10];b.bubble=unb(a[11]);});
+  s.P.forEach((a,i)=>{const p=G.players[i];setPos(p,a[0],a[1],first);p.face=a[2];p.moving=!!a[3];p.super=a[4];p.velo=a[5];p.reading=a[6];p.carried=a[7].map(j=>G.babies[j]);p.bubble=unb(a[8]);});
+  G.trams=s.T.map(a=>({x:a[0],y:a[1],dir:a[2],num:a[3],dest:a[4]||'DIDA EXPRESS',len:270,speed:a[5],special:!!a[6],color:a[6]?'#c0392b':undefined,bubble:unb(a[7]),hit:new Set()}));
+  G.items=s.I.map((a,i)=>({x:a[0],y:a[1],gold:!!a[2],ph:i*1.7}));
+  G.vegeta=s.V?{x:s.V[0],y:s.V[1],t:s.V[2]}:null;
+  G.velo=s.VL?{x:s.VL[0],y:s.VL[1],t:s.VL[2]}:null;
+  G.friend.holding=s.F[0]>=0?G.babies[s.F[0]]:null;G.friend.wave=s.F[1];G.friend.bubble=unb(s.F[2]);
+  const K=G.baka;K.state=s.K[0]?'here':'away';setPos(K,s.K[1],s.K[2],first);K.moving=!!s.K[3];K.wave=s.K[4];K.bubble=unb(s.K[5]);
+  const M=G.marin;M.state=s.M[0]?'here':'away';setPos(M,s.M[1],s.M[2],first);M.moving=!!s.M[3];M.wave=s.M[4];M.bubble=unb(s.M[5]);
+  G.dida.cd=s.D[0];G.dida.bubble=unb(s.D[1]);
+  G.pigeons=s.PG.map(a=>({x:a[0],y:a[1],dir:a[2],z:a[3]}));
+  G.pops=s.PO.map(a=>({x:a[0],y:a[1],text:a[2],col:a[3],t:a[4]}));
+  G.chat.show=s.CH?{from:s.CH[0],msg:s.CH[1],t:s.CH[2]}:null;
+  if(NET.lastSfx===null)NET.lastSfx=s.SX.length?s.SX[s.SX.length-1][0]:0;
+  for(const [id,k] of s.SX){if(id>NET.lastSfx){NET.lastSfx=id;try{SFX[k]&&SFX[k]();}catch(e){}}}
+  if(s.o&&s.E&&NET.endGid!==s.g){NET.endGid=s.g;G.over=true;renderEnd(s.E,false);}
+}
+function guestFrame(dt){
+  const k=Math.min(1,dt*14);
+  const ease=e=>{if(e.tx!==undefined){e.x+=(e.tx-e.x)*k;e.y+=(e.ty-e.y)*k;}};
+  if(!G.paused){
+    G.babies.forEach(ease);G.players.forEach(ease);ease(G.baka);ease(G.marin);
+    if(G.hack<=0)for(const tr of G.trams)tr.x+=tr.dir*tr.speed*dt;
+    for(const p of G.pops)p.y-=40*dt;
+  }
+  G.players.forEach(p=>{if(p.carried)p.carried.forEach(b=>{b.x=p.x;b.y=p.y;});});
+  let x=0,y=0;const kk=KEYS;
+  if(kk.KeyA||kk.ArrowLeft)x--;if(kk.KeyD||kk.ArrowRight)x++;if(kk.KeyW||kk.ArrowUp)y--;if(kk.KeyS||kk.ArrowDown)y++;
+  if(joy&&joy.active){const dx=joy.cx-joy.ox,dy=joy.cy-joy.oy,m=Math.hypot(dx,dy);if(m>8){x=dx/Math.max(m,40);y=dy/Math.max(m,40);}}
+  const m=Math.hypot(x,y);if(m>1){x/=m;y/=m;}
+  const inp={x:Math.round(x*100)/100,y:Math.round(y*100)/100},key=inp.x+','+inp.y;
+  if(key!==NET.lastIn){NET.lastIn=key;NET.nr.presence({in:inp}).catch(()=>{});}
+}
+
+$('o-host').onclick=hostGame;
+$('o-join').onclick=joinGame;
+$('o-start').onclick=startOnline;
+$('o-code').addEventListener('keydown',e=>{if(e.key==='Enter')joinGame();});
+
+/* ====== CAST PORTRAITS ====== */
+function portraits(){
+  document.querySelectorAll('#cast canvas').forEach(cn=>{
+    const c=cn.getContext('2d'),k=cn.width/170;c.setTransform(1,0,0,1,0,0);c.clearRect(0,0,cn.width,cn.height);
+    const p=cn.dataset.p;
+    const draw=(s,fn)=>{c.setTransform(k*s,0,0,k*s,0,0);fn(85/s,104/s);};
+    if(p==='toma')draw(1.5,(x,y)=>drawBaby(c,{...BABIES[0],brushes:2,dir:1},x,y,{armsUp:true}));
+    if(p==='elena')draw(1.5,(x,y)=>drawBaby(c,{...BABIES[1],brushes:4,dir:-1},x,y));
+    if(p==='mama')draw(.92,(x,y)=>drawMama(c,{x,y,face:1,bubble:{t:1},carried:[]}));
+    if(p==='tata')draw(.86,(x,y)=>drawTata(c,{x,y}));
+    if(p==='baka')draw(.92,(x,y)=>drawBaka(c,{x,y,wave:1}));
+    if(p==='dida')draw(1.05,(x,y)=>drawDida(c,{x,y:y-4,cd:1}));
+    if(p==='marin')draw(.86,(x,y)=>drawMarin(c,{x,y,wave:1}));
+    if(p==='pleme')draw(1.15,(x,y)=>drawChatIcon(c,x,y));
+    if(p==='frend')draw(.9,(x,y)=>drawFriend(c,{x:x+14,y,holding:null}));
+  });
+}
+portraits();
+if(document.fonts&&document.fonts.ready)document.fonts.ready.then(portraits);
+setInterval(()=>{if(!$('menu').hidden){NOW=performance.now()/1000;portraits();}},120);
+
+raf=requestAnimationFrame(frame);
+})();
+</script>
+
+</body>
+</html>
