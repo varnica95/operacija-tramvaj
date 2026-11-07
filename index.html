@@ -145,7 +145,7 @@ body.mobile-play .bar button{font-size:14px;padding:5px 12px}
       </div>
       <p class="o-status" id="o-status" role="status">Provjeravam vezu…</p>
     </div>
-    <p class="controls">Jedan igrač: <kbd>←</kbd><kbd>↑</kbd><kbd>→</kbd><kbd>↓</kbd> ili <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd>, a na mobitelu vuci prstom po ekranu. Dva igrača: mama na <kbd>WASD</kbd>, tata na strelicama. <kbd>P</kbd> pauza, <kbd>M</kbd> zvuk. Runda traje 100 sekundi. <span style="opacity:.7">Verzija 20</span></p>
+    <p class="controls">Jedan igrač: <kbd>←</kbd><kbd>↑</kbd><kbd>→</kbd><kbd>↓</kbd> ili <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd>, a na mobitelu vuci prstom po ekranu. Dva igrača: mama na <kbd>WASD</kbd>, tata na strelicama. <kbd>P</kbd> pauza, <kbd>M</kbd> zvuk. Runda traje 100 sekundi. <span style="opacity:.7">Verzija 21</span></p>
 
     <ul class="rules" data-for-lv="1">
       <li><b>+100</b><span>za svako dijete koje doneseš do kolica (možeš nositi dvoje odjednom)</span></li>
@@ -176,7 +176,7 @@ body.mobile-play .bar button{font-size:14px;padding:5px 12px}
     </div>
     <div class="cast" data-for-lv="2" hidden>
       <div class="who"><canvas data-p="iva" width="340" height="220"></canvas><h3>Mama Iva</h3><p>Radiologinja. Ima moć da gleda rendgenom kroz klupe, pa vidi svako dijete koje se sakrilo. Voli kupovati dječju robu na Vintedu, a Vinted paket joj daje brzinu.</p></div>
-      <div class="who"><canvas data-p="josip" width="340" height="220"></canvas><h3>Tata Josip</h3><p>Fotograf koji snima u studiju i stalno kupuje fotoopremu. Novi objektiv mu daje bljesak koji zaslijepi djecu. Najviše „voli” kad ga Žak Houdek zove na sendviče.</p></div>
+      <div class="who"><canvas data-p="josip" width="340" height="220"></canvas><h3>Tata Josip</h3><p>Fotograf koji snima u studiju i stalno kupuje fotoopremu. Novi objektiv mu daje bljesak koji zaslijepi djecu. Najviše „voli” kad ga Žak Houdek zove na sendviče. Svako malo se umori i zaspe na klupi na par sekundi.</p></div>
       <div class="who"><canvas data-p="mihi" width="340" height="220"></canvas><h3>Mihi</h3><p>Čim ugleda bager na ulici ispred crkve, trči van za njim i viče „BAGER!!!”. Voli dirati golubove i gasiti svijeće.</p></div>
       <div class="who"><canvas data-p="mimi" width="340" height="220"></canvas><h3>Mimi</h3><p>Krade mobitele: mami, tati, baki Katarini, pa čak i Žaku. Kad je uhvatiš, vratiš mobitel (+25). Voli dirati golubove.</p></div>
       <div class="who"><canvas data-p="rafaela" width="340" height="220"></canvas><h3>Rafaela</h3><p>Stara je tek par dana, pa samo puže. Spora je i ne bježi, ali teta Seka nju najviše želi odvesti.</p></div>
@@ -1006,7 +1006,7 @@ function freeSpot(minFromParents){
 }
 
 function parentSpeed(p){
-  return (p.ai?165:195)*(p.super>0?1.5:1)*(p.velo>0?1.4:1)*(p.reading>0?.5:1)*(p.zakNear>0?.55:1)*(1-.1*p.carried.length);
+  return (p.ai?165:195)*(p.yawn>0?.6:1)*(p.super>0?1.5:1)*(p.velo>0?1.4:1)*(p.reading>0?.5:1)*(p.zakNear>0?.55:1)*(1-.1*p.carried.length);
 }
 
 function activeParents(){
@@ -1175,6 +1175,7 @@ function updateBaby(b,dt){
   for(const p of activeParents()){
     if(p.ai&&G.npc.state!=='help')continue;
     if(b.goal&&b.goal.type==='phone'&&b.goal.t===p)continue;
+    if(p.sleep>0)continue;
     const d=dist(b,p);
     if(d<150&&d>0){const w=(1-d/150)*(b.crawl?.5:1.7);vx+=(b.x-p.x)/d*w;vy+=(b.y-p.y)/d*w;
       if(d<90&&b.fleeCd<=0&&Math.random()<.02){setBubble(b,pick(L.flee),1.1);b.fleeCd=3;}}
@@ -1349,6 +1350,7 @@ function update(dt){
   for(const p of G.players){
     if(p.bubble)p.bubble.t-=dt;
     p.super=Math.max(0,p.super-dt);p.velo=Math.max(0,p.velo-dt);p.reading=Math.max(0,p.reading-dt);p.flash=Math.max(0,(p.flash||0)-dt*2);p.zakNear=Math.max(0,(p.zakNear||0)-dt);
+    if(LV===2&&p.kind==='tata'&&tiredTick(p,dt))continue;
     const inp=inputFor(p),sp=parentSpeed(p);
     p.x+=inp.x*sp*dt;p.y+=inp.y*sp*dt;p.moving=Math.hypot(inp.x,inp.y)>.05;if(Math.abs(inp.x)>.1)p.face=Math.sign(inp.x);
     bound(p,true);parentInteract(p);
@@ -1395,6 +1397,29 @@ function update(dt){
   G.pops=G.pops.filter(p=>p.t>0);
 
   if(G.nerves<=0){G.nervesOut=true;endGame();}
+}
+
+/* ---- crkva: Josip se umori i zaspe na klupi ---- */
+function tiredTick(p,dt){
+  if(p.tiredCd===undefined)p.tiredCd=rand(16,22);
+  if(p.sleep>0){
+    p.sleep-=dt;p.moving=false;
+    if(p.sleep<=0){p.sleep=0;setBubble(p,pick(['Što?! Ne spavam!','Samo sam odmarao oči.','Sanjao sam objektive...','Je li Žak otišao?']),1.8);p.tiredCd=rand(22,30);bound(p,true);}
+    else if(!(p.bubble&&p.bubble.t>0))setBubble(p,'Zzz...',1.2);
+    return true;
+  }
+  if(p.yawn>0){p.yawn-=dt;if(p.yawn<=0)fallAsleep(p);return false;}
+  p.tiredCd-=dt;
+  if(p.tiredCd<=0&&!p.carried.length){p.yawn=1.5;setBubble(p,pick(['Joj... umoran sam...','Samo pet minuta...','Aaaah... (zijev)']),1.5);}
+  return false;
+}
+function fallAsleep(p){
+  let best=null,bd=1e9;
+  for(const r of PEWS){const cx=clamp(p.x,r.x+50,r.x+r.w-50),cy=r.y+4,d=Math.hypot(cx-p.x,cy-p.y);if(d<bd){bd=d;best={x:cx,y:cy};}}
+  if(best&&bd<170){p.x=best.x;p.y=best.y;}
+  p.sleep=3.5;setBubble(p,'Zzz...',1.2);pop(p.x,p.y-70,'Josip je zaspao na klupi!','#c9d6ee');SFX.tick();
+  const iva=activeParents().find(q=>q.kind==='mama');
+  if(iva)setTimeout(()=>{if(G&&!G.over)setBubble(iva,pick(['JOSIPE! Probudi se!','Josipe, nije vrijeme za spavanje!','Opet spava...']),1.8);},700);
 }
 
 /* ---- crkva: Seka, baka Katarina, Žak, molitva ---- */
@@ -1477,7 +1502,11 @@ function drawParent(c,p){
   if(p.kind==='mama'){drawMama(c,p);}
   else{
     if(p.super>0){const pr=1+Math.sin(NOW*14)*.08;c.fillStyle='rgba(255,163,26,.3)';c.beginPath();c.ellipse(p.x,p.y-55,44*pr,66*pr,0,0,Math.PI*2);c.fill();}
-    drawTata(c,p);
+    if(p.sleep>0){
+      c.save();c.translate(p.x+52,p.y-10);c.rotate(-Math.PI/2);drawTata(c,{...p,x:0,y:0,moving:false});c.restore();
+      c.font='18px "Lilita One", sans-serif';c.textAlign='center';c.lineWidth=4;c.strokeStyle=INK;
+      for(let i=0;i<3;i++){const q=(NOW*.8+i/3)%1;c.globalAlpha=1-q;c.strokeText('Z',p.x-60+q*20+i*6,p.y-30-q*40);c.fillStyle='#fff';c.fillText('Z',p.x-60+q*20+i*6,p.y-30-q*40);}c.globalAlpha=1;
+    }else drawTata(c,p);
     p.carried.forEach((cb,i)=>drawBaby(c,cb,p.x+(i?-24:24),p.y-46,{flail:true,armsUp:true,noShadow:true,sad:true,still:true}));
   }
   if(p.velo>0){for(let i=0;i<3;i++)line(c,p.x-(p.face||1)*(26+i*8),p.y-30-i*18,p.x-(p.face||1)*(46+i*8),p.y-30-i*18,'rgba(155,231,255,.9)',3);}
@@ -1549,7 +1578,7 @@ function render(){
   if(G.baka.state!=='away')list.push({y:G.baka.y,d:()=>{drawBaka(c,G.baka);label(c,G.baka.x,G.baka.y,'Baka '+CFG.baka,'rgba(197,90,138,.95)');}});
   if(G.marin.state!=='away')list.push({y:G.marin.y,d:()=>{drawMarin(c,G.marin);label(c,G.marin.x,G.marin.y,'Strika Marin','rgba(45,49,66,.95)');}});
   if(LV===1)list.push({y:G.dida.y,d:()=>{drawDida(c,G.dida);label(c,G.dida.x,G.dida.y,'Dida '+CFG.dida,'rgba(107,91,62,.95)');}});
-  for(const p of G.players)list.push({y:p.y,d:()=>drawParent(c,p)});
+  for(const p of G.players)list.push({y:p.y+(p.sleep>0?40:0),d:()=>drawParent(c,p)});
   if(G.npc&&G.npc.state!=='away'){const p=G.npc.p;list.push({y:p.y,d:()=>drawParent(c,p)});}
   for(const b of G.babies){
     if(b.state==='carried'||b.state==='held'||b.state==='seka'||b.state==='neos')continue;
@@ -1975,7 +2004,7 @@ function snap(){
   return {
     lv:LV,g:G.gid,o:G.over?1:0,pa:G.paused?1:0,t:f1(G.time),tt:f1(G.t),nv:Math.ceil(G.nerves),sc:Math.floor(G.score),hk:f1(G.hack),sh:r(G.shake),
     B:G.babies.map(b=>[r(b.x),r(b.y),ST.indexOf(b.state),b.brushes,b.dir,b.moving?1:0,b.happy>0?1:0,f1(b.shield),f1(b.cry),b.safe>0?1:0,Math.ceil(b.timer),bub(b),b.phone?1:0,f1(b.stun||0)]),
-    P:G.players.map(p=>[r(p.x),r(p.y),p.face,p.moving?1:0,f1(p.super),f1(p.velo),p.reading>0?1:0,p.carried.map(c=>c.slot),bub(p),f1(p.flash||0)]),
+    P:G.players.map(p=>[r(p.x),r(p.y),p.face,p.moving?1:0,f1(p.super),f1(p.velo),p.reading>0?1:0,p.carried.map(c=>c.slot),bub(p),f1(p.flash||0),p.sleep>0?1:0]),
     T:G.trams.map(t=>[r(t.x),t.y,t.dir,t.special?0:t.num,t.special?'':t.dest,r(t.speed),t.special?1:0,bub(t)]),
     I:G.items.map(i=>[r(i.x),r(i.y),i.gold?1:0]),
     V:G.vegeta?[r(G.vegeta.x),r(G.vegeta.y),f1(G.vegeta.t)]:0,
@@ -2028,7 +2057,7 @@ function applySnap(s){
   if(!G||!G.remote||G.gid!==s.g){G=viewG(s.g);first=true;if(!s.o){show('play');$('btn-pause').textContent='Pauza';}}
   G.paused=!!s.pa;G.time=s.t;G.t=s.tt;G.nerves=s.nv;G.score=s.sc;G.hack=s.hk;G.shake=s.sh;
   s.B.forEach((a,i)=>{const b=G.babies[i];setPos(b,a[0],a[1],first);b.state=ST[a[2]]||'free';b.brushes=a[3];b.dir=a[4];b.moving=!!a[5];b.happy=a[6];b.shield=a[7];b.cry=a[8];b.safe=a[9];b.timer=a[10];b.bubble=unb(a[11]);b.phone=a[12]?{}:null;b.stun=a[13]||0;});
-  s.P.forEach((a,i)=>{const p=G.players[i];setPos(p,a[0],a[1],first);p.face=a[2];p.moving=!!a[3];p.super=a[4];p.velo=a[5];p.reading=a[6];p.carried=a[7].map(j=>G.babies[j]);p.bubble=unb(a[8]);p.flash=a[9]||0;});
+  s.P.forEach((a,i)=>{const p=G.players[i];setPos(p,a[0],a[1],first);p.face=a[2];p.moving=!!a[3];p.super=a[4];p.velo=a[5];p.reading=a[6];p.carried=a[7].map(j=>G.babies[j]);p.bubble=unb(a[8]);p.flash=a[9]||0;p.sleep=a[10]?1:0;});
   G.trams=s.T.map(a=>({x:a[0],y:a[1],dir:a[2],num:a[3],dest:a[4]||'DIDA EXPRESS',len:270,speed:a[5],special:!!a[6],color:a[6]?'#c0392b':undefined,bubble:unb(a[7]),hit:new Set()}));
   G.items=s.I.map((a,i)=>({x:a[0],y:a[1],gold:!!a[2],ph:i*1.7}));
   G.vegeta=s.V?{x:s.V[0],y:s.V[1],t:s.V[2]}:null;
